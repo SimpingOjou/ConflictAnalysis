@@ -1,5 +1,5 @@
 # EMG_Analysis
-EMG analysis of conflict test. Work done for a special course in Signal Analysis in Copenhagen University.
+EMG analysis of conflict test. Work done for a special course in Signal Analysis in Copenhagen University (Spring 2024).
 
 The signal has been filtered, rectified, and enveloped before processing.
 

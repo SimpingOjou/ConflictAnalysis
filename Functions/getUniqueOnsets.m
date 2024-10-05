@@ -10,7 +10,7 @@ function [result] = getUniqueOnsets(onsets, min_distance_ms)
     for i = 2:length(onsets)
         % Check that the current value is at least no_onset_period_ms distant
         % from the rest
-        if all(abs(onsets(i) - result) >= min_distance_ms/1000)
+        if all(abs(onsets(i) - result) >= min_distance_ms)
             result = [result, onsets(i)]; 
         end
     end

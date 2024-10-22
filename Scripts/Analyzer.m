@@ -63,15 +63,11 @@ tkeo_vibration_envelope = tkeo_vibration_envelope - tkeo_movement_envelope .* ra
 vb_onset_indexes = getSignalOnset(tkeo_vibration_envelope, vb_baseline_th, no_onset_period_ms, channel_nbr, 1, vibration_time_ms);
 
 %% Movement finger detection
-% Get unique fdi and adm onsets
+% Get unique onsets so that we can compare them with the box data
 no_onset_period_index = no_onset_period_ms * 2;
-% Vibration
-unique_vb = unique([vb_onset_indexes{1}', vb_onset_indexes{2}', vb_onset_indexes{3}', vb_onset_indexes{4}', vb_onset_indexes{5}', vb_onset_indexes{6}']);
-unique_vb = getUniqueOnsets(unique_vb, no_onset_period_index);
 
-% Movement
-unique_mv = unique([mv_onset_indexes{1}', mv_onset_indexes{2}', mv_onset_indexes{3}', mv_onset_indexes{4}', mv_onset_indexes{5}', mv_onset_indexes{6}']);
-unique_mv = getUniqueOnsets(unique_mv, no_onset_period_index);
+unique_vb = getUniqueOnsets(vb_onset_indexes, no_onset_period_index);
+unique_mv = getUniqueOnsets(mv_onset_indexes, no_onset_period_index);
 
 % Use box data to get test type
 trial_onset_index = zeros(1,trial_nbr); % 240 trials from 0 

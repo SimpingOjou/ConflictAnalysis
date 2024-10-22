@@ -1,17 +1,19 @@
 function [result] = getUniqueOnsets(onsets, min_distance_ms)
-    %GETUNIQUEONSETS get unique onsets given an array
+    % GETUNIQUEONSETS Get unique onsets given an array
     % Input:
-    % - onset array
-    % - minimum distance in ms
+    % - onsets: cell array where each cell contains an array of onset times
+    % - min_distance_ms: minimum distance in milliseconds between unique onsets
     % Output:
-    % - unique array
+    % - result: array of unique onsets that are at least min_distance_ms apart
 
-    result = onsets(1);
-    for i = 2:length(onsets)
+    unique_onsets = unique([onsets{1}', onsets{2}', onsets{3}', onsets{4}', onsets{5}', onsets{6}']);
+
+    result = unique_onsets(1);
+    for i = 2:length(unique_onsets)
         % Check that the current value is at least no_onset_period_ms distant
         % from the rest
-        if all(abs(onsets(i) - result) >= min_distance_ms)
-            result = [result, onsets(i)]; 
+        if all(abs(unique_onsets(i) - result) >= min_distance_ms)
+            result = [result, unique_onsets(i)]; 
         end
     end
 

@@ -38,54 +38,31 @@ vb_alpha = 0.7; % Multiplier for standard deviation. Used for onset detection fo
 
 % Plot flags
 enable_plots = 1; % Enable plots if 1 otherwise 0
+
 plot_raw = 1; % Plot raw data if 1 otherwise 0
 plot_raw_lims = [70, 90; -0.1, 1]; % [xmin, xmax; ymin, ymax], if empty, default values are used
+
 plot_ps = 1; % Plot power spectrum if 1 otherwise 0
 plot_ps_lims = [0, 400; 0, 10]; % [xmin, xmax; ymin, ymax], if empty, default values are used
+
 plot_tkeo = 1; % Plot TKEO data if 1 otherwise 0
 plot_tkeo_lims = [70, 90; -1e-4, 15e-4]; % [xmin, xmax; ymin, ymax], if empty, default values are used
+
 plot_rt = 1; % Plot RT coparison if 1 otherwise 0
 
 %% Movement detection
-[b, a] = butter(filter_order_mv, [cutoff_low_mv/(sampling/2), cutoff_high_mv/(sampling/2)], 'bandpass');
-
-movement = zeros(data_length, channel_nbr);
-for i = 1:channel_nbr
-    movement(:,i) = filtfilt(b, a , channels{i}.data);
-end
-
-[tkeo_movement, tkeo_movement_envelope] = getCleanSignal_tkeo(movement, tkeo_window_size, channel_nbr);
-
-% Find signal mv_baseline
-mv_baseline = mean(tkeo_movement_envelope);
-mv_baseline_std = std(tkeo_movement_envelope);
-mv_baseline_th = mv_baseline + mv_alpha*mv_baseline_std;
-
-mv_onset_indexes = getSignalOnset(tkeo_movement_envelope, mv_baseline_th, no_onset_period_ms, channel_nbr, 0, 0);
+[tkeo_movement, tkeo_movement_envelope, mv_onset_indexes, mv_baseline_th] = getFeatures(channels, filter_order_mv, cutoff_low_mv, cutoff_high_mv, sampling, data_length, tkeo_window_size, mv_alpha, no_onset_period_ms, vibration_time_ms, 0);
 
 %% Vibration detection
-[b, a] = butter(vb_filter_order, [vb_cutoff_low/(sampling/2), vb_cutoff_high/(sampling/2)], 'bandpass');
-
-vibration = zeros(data_length, channel_nbr);
-for i = 1:channel_nbr
-    vibration(:,i) = abs(filtfilt(b, a , channels{i}.data));
-end
-
-[tkeo_vibration, tkeo_vibration_envelope] = getCleanSignal_tkeo(vibration, tkeo_window_size, channel_nbr);
+[tkeo_vibration, tkeo_vibration_envelope, vb_onset_indexes, vb_baseline_th] = getFeatures(channels, vb_filter_order, vb_cutoff_low, vb_cutoff_high, sampling, data_length, tkeo_window_size, vb_alpha, no_onset_period_ms, vibration_time_ms, 1);
 
 % normalize vibration and movement sizes
 ratio_vb_mv = mean(tkeo_vibration_envelope) ./ mean(tkeo_movement_envelope);
 tkeo_vibration_envelope = tkeo_vibration_envelope - tkeo_movement_envelope .* ratio_vb_mv;
 
-% Find signal vb_baseline
-vb_baseline = mean(tkeo_vibration_envelope);
-vb_baseline_std = std(tkeo_vibration_envelope);
-vb_baseline_th = vb_baseline + vb_alpha * vb_baseline_std;
-
 vb_onset_indexes = getSignalOnset(tkeo_vibration_envelope, vb_baseline_th, no_onset_period_ms, channel_nbr, 1, vibration_time_ms);
 
 %% Movement finger detection
-
 % Get unique fdi and adm onsets
 no_onset_period_index = no_onset_period_ms * 2;
 % Vibration

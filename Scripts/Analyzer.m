@@ -50,10 +50,10 @@ plot_tkeo_lims = [70, 90; -1e-4, 15e-4]; % [xmin, xmax; ymin, ymax], if empty, d
 
 plot_rt = 1; % Plot RT coparison if 1 otherwise 0
 
-%% Movement detection
+%% Detect features
+% Movement detection
 [tkeo_movement, tkeo_movement_envelope, mv_onset_indexes, mv_baseline_th] = getFeatures(channels, filter_order_mv, cutoff_low_mv, cutoff_high_mv, sampling, data_length, tkeo_window_size, mv_alpha, no_onset_period_ms, vibration_time_ms, 0);
-
-%% Vibration detection
+% Vibration detection
 [tkeo_vibration, tkeo_vibration_envelope, vb_onset_indexes, vb_baseline_th] = getFeatures(channels, vb_filter_order, vb_cutoff_low, vb_cutoff_high, sampling, data_length, tkeo_window_size, vb_alpha, no_onset_period_ms, vibration_time_ms, 1);
 
 % normalize vibration and movement sizes
@@ -62,7 +62,7 @@ tkeo_vibration_envelope = tkeo_vibration_envelope - tkeo_movement_envelope .* ra
 
 vb_onset_indexes = getSignalOnset(tkeo_vibration_envelope, vb_baseline_th, no_onset_period_ms, channel_nbr, 1, vibration_time_ms);
 
-%% Movement finger detection
+%% Test type detection
 % Get unique onsets so that we can compare them with the box data
 no_onset_period_index = no_onset_period_ms * 2;
 

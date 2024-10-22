@@ -30,6 +30,7 @@ filter_order_mv = 1; % Filter order for movement detection
 mv_alpha = 1; % Multiplier for standard deviation. Used for onset detection for movement. Higher value means more strict onset detection
 
 % Vibration detection parameters
+vibration_time_ms = 150; % Vibration duration in ms
 vb_cutoff_low = 120; % Low cutoff frequency for vibration detection (Hz)
 vb_cutoff_high = 130; % High cutoff frequency for vibration detection (Hz)
 vb_filter_order = 6; % Filter order for vibration detection
@@ -59,7 +60,7 @@ mv_baseline = mean(tkeo_movement_envelope);
 mv_baseline_std = std(tkeo_movement_envelope);
 mv_baseline_th = mv_baseline + mv_alpha*mv_baseline_std;
 
-mv_onset_indexes = getSignalOnset(tkeo_movement_envelope, mv_baseline_th, no_onset_period_ms, channel_nbr, 0);
+mv_onset_indexes = getSignalOnset(tkeo_movement_envelope, mv_baseline_th, no_onset_period_ms, channel_nbr, 0, 0);
 
 %% Vibration detection
 [b, a] = butter(vb_filter_order, [vb_cutoff_low/(sampling/2), vb_cutoff_high/(sampling/2)], 'bandpass');
@@ -80,7 +81,7 @@ vb_baseline = mean(tkeo_vibration_envelope);
 vb_baseline_std = std(tkeo_vibration_envelope);
 vb_baseline_th = vb_baseline + vb_alpha * vb_baseline_std;
 
-vb_onset_indexes = getSignalOnset(tkeo_vibration_envelope, vb_baseline_th, no_onset_period_ms, channel_nbr, 1);
+vb_onset_indexes = getSignalOnset(tkeo_vibration_envelope, vb_baseline_th, no_onset_period_ms, channel_nbr, 1, vibration_time_ms);
 
 %% Movement finger detection
 

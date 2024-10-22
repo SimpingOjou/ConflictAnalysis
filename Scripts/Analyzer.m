@@ -1,5 +1,6 @@
 %% Initialization of the data
 clear all;
+clc;
 
 % Accelerometer data
 accelerometer = load("acc_run1.mat");
@@ -39,16 +40,17 @@ vb_alpha = 0.7; % Multiplier for standard deviation. Used for onset detection fo
 % Plot flags
 enable_plots = 1; % Enable plots if 1 otherwise 0
 
-plot_raw = 1; % Plot raw data if 1 otherwise 0
+plot_raw = 0; % Plot raw data if 1 otherwise 0
 plot_raw_lims = [70, 90; -0.1, 1]; % [xmin, xmax; ymin, ymax], if empty, default values are used
 
-plot_ps = 1; % Plot power spectrum if 1 otherwise 0
+plot_ps = 0; % Plot power spectrum if 1 otherwise 0
 plot_ps_lims = [0, 400; 0, 10]; % [xmin, xmax; ymin, ymax], if empty, default values are used
 
-plot_tkeo = 1; % Plot TKEO data if 1 otherwise 0
+plot_tkeo = 0; % Plot TKEO data if 1 otherwise 0
 plot_tkeo_lims = [70, 90; -1e-4, 15e-4]; % [xmin, xmax; ymin, ymax], if empty, default values are used
 
-plot_rt = 1; % Plot RT coparison if 1 otherwise 0
+plot_rt = 0; % Plot RT coparison if 1 otherwise 0
+plot_rt_by_type = 1; % Plot RT comparison by test type if 1 otherwise 0
 
 %% Detect features
 % Movement detection
@@ -76,7 +78,7 @@ for i = 1:trial_nbr
 end
 
 box_trial_list = box_triallist;
-[test_type, vb_index, mv_index] = getTestFromBox(trial_onset_index, box_trial_list, no_onset_period_index, unique_mv, unique_vb);
+[test_type, vb_index, mv_index, vb_fing, mv_fing] = getTestFromBox(trial_onset_index, box_trial_list, no_onset_period_index, unique_mv, unique_vb);
 
 %% Accuracy check
 total_trials = test_type == box_triallist;
@@ -84,16 +86,27 @@ correct_nbr = length(total_trials(total_trials==1));
 incorrect_nbr = length(total_trials(total_trials==0));
 
 fprintf('\nAccuracy: %d of %d >> %f %%',correct_nbr,length(total_trials),correct_nbr/length(total_trials)*100);
-fprintf('\nNot sure guesses: %d of %d >> %f %%',incorrect_nbr,length(total_trials),incorrect_nbr/length(total_trials)*100);
+fprintf('Not sure guesses: %d of %d >> %f %%\n',incorrect_nbr,length(total_trials),incorrect_nbr/length(total_trials)*100);
+fprintf('-------------------------------------------------------------------');
 
 %% RT comparison with box data
 rt_acc_index = mv_index - vb_index;
 rt_acc = t(rt_acc_index) * 1000;
 
 fprintf('\nAverage accelerometer rt: %f ms', mean(rt_acc));
-fprintf('\nAverage box rt: %f ms', mean(box_presstime(box_presstime ~= 99000)));
+fprintf('Average box rt: %f ms\n', mean(box_presstime(box_presstime ~= 99000)));
+fprintf('-------------------------------------------------------------------');
 
-% compare between response types
+% Divide rt based on test type
+acc_test_type = test_type(test_type ~= 0);
+
+for i = 1:4
+    fprintf('\nAverage accelerometer rt for test type %d: %f ms', i, mean(rt_acc(acc_test_type == i)));
+    fprintf('Average box rt for test type %d: %f ms\n', i, mean(box_presstime(box_presstime ~= 99000 & box_triallist == i)));
+    fprintf('-------------------------------------------------------------------');
+end
+
+%% TODO
 % get info about the previous type too
 % test out on 2nd run
 
@@ -134,5 +147,9 @@ if enable_plots
 
     if plot_rt
         plot_RT(rt_acc, box_presstime);
+    end
+
+    if plot_rt_by_type
+        plot_RT_by_type(rt_acc, acc_test_type, box_presstime, box_triallist);
     end
 end

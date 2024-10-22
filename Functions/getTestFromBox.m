@@ -1,4 +1,4 @@
-function [test_type, vb_index, mv_index] = getTestFromBox(trial_onset_index,...
+function [test_type, vb_index, mv_index, vb_fing, mv_fing] = getTestFromBox(trial_onset_index,...
     box_trial_list, timeframe, mv_onset, vb_onset)
 %GETTESTFROMBOX returns the test type (1,2,3,4,0), the vb index and the mv
 % index
@@ -13,7 +13,9 @@ function [test_type, vb_index, mv_index] = getTestFromBox(trial_onset_index,...
 
     test_type = zeros(1,data_length);
     vb_index = [];
+    vb_fing = [];
     mv_index = [];
+    mv_fing = [];
     for i = 1:data_length
 
         [vibration, movement] = getChannels(box_trial_list(i));
@@ -48,7 +50,20 @@ function [test_type, vb_index, mv_index] = getTestFromBox(trial_onset_index,...
                 end
 
                 vb_index = [vb_index, temp_vb];
+                if vibration == [1,2,3]
+                    vb_fing = [vb_fing, 1];
+                end
+                if vibration == [4,5,6]
+                    vb_fing = [vb_fing, 2];
+                end
+
                 mv_index = [mv_index, temp_mv];
+                if movement == [1,2,3]
+                    mv_fing = [mv_fing, 1];
+                end
+                if movement == [4,5,6]
+                    mv_fing = [mv_fing, 2];
+                end
             end
         end
     end

@@ -40,6 +40,7 @@ vb_alpha = 0.7; % Multiplier for standard deviation. Used for onset detection fo
 enable_plots = 1; % Enable plots if 1 otherwise 0
 plot_raw = 1; % Plot raw data if 1 otherwise 0
 plot_raw_lims = [70, 90; -0.1, 1]; % [xmin, xmax; ymin, ymax], if empty, default values are used
+plot_ps = 1; % Plot power spectrum if 1 otherwise 0
 plot_ps_lims = [0, 400; 0, 10]; % [xmin, xmax; ymin, ymax], if empty, default values are used
 plot_tkeo = 1; % Plot TKEO data if 1 otherwise 0
 plot_tkeo_lims = [70, 90; -1e-4, 15e-4]; % [xmin, xmax; ymin, ymax], if empty, default values are used
@@ -127,14 +128,6 @@ fprintf('\nAverage box rt: %f ms', mean(box_presstime(box_presstime ~= 99000)));
 
 if enable_plots
     if plot_raw
-        % FFT
-        fft_raw = zeros(data_length, channel_nbr);
-        for i = 1:channel_nbr
-            fft_raw(:, i) = abs(fft(channels{i}.data)).^2 ./ data_length;
-        end
-
-        f = (1:length(fft_raw)) * sampling / length(fft_raw);
-
         % Raw signal
         cutoff_low = 1; 
         cutoff_high = 300; 
@@ -147,8 +140,19 @@ if enable_plots
             raw(:,i) = filtfilt(b, a , channels{i}.data);
         end
 
-        clear("cutoff_low", "cutoff_high", "filter_order");
-        plot_RAW(channels, t, raw, f, fft_raw, vb_onset_indexes, mv_onset_indexes, plot_raw_lims, plot_ps_lims);
+        plot_RAW(channels, t, raw, vb_onset_indexes, mv_onset_indexes, plot_raw_lims);
+    end
+
+    if plot_ps
+        % FFT
+        fft_raw = zeros(data_length, channel_nbr);
+        for i = 1:channel_nbr
+            fft_raw(:, i) = abs(fft(channels{i}.data)).^2 ./ data_length;
+        end
+
+        f = (1:length(fft_raw)) * sampling / length(fft_raw);
+
+        plot_PS(channels, f, fft_raw, plot_ps_lims);
     end
 
     if plot_tkeo

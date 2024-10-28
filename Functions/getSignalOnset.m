@@ -1,14 +1,15 @@
 function [onset_indexes] = getSignalOnset(signal, threshold,...
-    no_onset_period, channel_nbr, vibration, vibration_time_ms)
+    no_onset_period, vibration, vibration_time_ms)
     %GETSIGNALONSET Get signal onset from given parameters
     %   Inputs:
     %   - signal
     %   - threshold
     %   - no_onset_period: how many ms after another possible onset
-    %   - channel_nbr
     %   - vibration: 1 if checking vibrations, 0 otherwise
     %   - vibration_time_ms: vibration time in ms
     %   Output: onset times and onset indexes
+
+    channel_nbr = length(signal(1,:));
 
     if vibration == 1
         vibration_plot = vibration_time_ms * 2;

@@ -1,4 +1,4 @@
-function plot_RT_by_type(rt_acc, acc_test_type, box_presstime, box_triallist) 
+function plot_RT_by_type(rt_acc, acc_test_type, box_presstime, box_triallist, box_null_value) 
     % This function plots reaction times (RT) by test type.
     % Inputs:
     %   rt_acc - Reaction times from the accuracy test
@@ -13,7 +13,7 @@ function plot_RT_by_type(rt_acc, acc_test_type, box_presstime, box_triallist)
     % Loop through each test type and create a subplot
     for i = 1:length(test_types)
         current_rt = rt_acc(acc_test_type == i);
-        current_box_rt = box_presstime(box_presstime ~= 99000 & box_triallist == i);
+        current_box_rt = box_presstime(box_presstime ~= box_null_value & box_triallist == i);
         
         x_acc = linspace(1, length(current_rt), length(current_rt));
         x_box = linspace(1, length(current_box_rt), length(current_box_rt));

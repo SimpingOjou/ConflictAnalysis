@@ -5,37 +5,10 @@ clc;
 % Load the user defined parameters of the script
 parameters;
 
-[tkeo_movement_envelope, tkeo_vibration_envelope, mv_baseline_th, vb_baseline_th, trial_onset_index, test_type, vb_index, mv_index, vb_fing, mv_fing, vb_onset_indexes, mv_onset_indexes] = computeAll(signal, filter_order_mv, cutoff_low_mv, cutoff_high_mv, sampling, tkeo_window_size, mv_alpha, no_onset_period_ms, vibration_time_ms, vb_filter_order, vb_cutoff_low, vb_cutoff_high, trial_nbr, trial_segment, box_triallist);
+% Compute the data
+[tkeo_movement_envelope, tkeo_vibration_envelope, mv_baseline_th, vb_baseline_th, trial_onset_index, test_type, vb_index, mv_index, vb_fing, mv_fing, vb_onset_indexes, mv_onset_indexes] = computeAll(signal, filter_order_mv, cutoff_low_mv, cutoff_high_mv, sampling, tkeo_window_size, vb_alpha, mv_alpha, no_onset_period_ms, vibration_time_ms, vb_filter_order, vb_cutoff_low, vb_cutoff_high, trial_nbr, trial_segment, box_triallist);
 
-% %% Detect features
-% % Movement detection
-% [tkeo_movement, tkeo_movement_envelope, mv_onset_indexes, mv_baseline_th] = getFeatures(signal, filter_order_mv, cutoff_low_mv, cutoff_high_mv, sampling, tkeo_window_size, mv_alpha, no_onset_period_ms, vibration_time_ms, 0);
-% % Vibration detection
-% [tkeo_vibration, tkeo_vibration_envelope, vb_onset_indexes, vb_baseline_th] = getFeatures(signal, vb_filter_order, vb_cutoff_low, vb_cutoff_high, sampling, tkeo_window_size, vb_alpha, no_onset_period_ms, vibration_time_ms, 1);
-
-% % normalize vibration and movement sizes
-% ratio_vb_mv = mean(tkeo_vibration_envelope) ./ mean(tkeo_movement_envelope);
-% tkeo_vibration_envelope = tkeo_vibration_envelope - tkeo_movement_envelope .* ratio_vb_mv;
-
-% vb_onset_indexes = getSignalOnset(tkeo_vibration_envelope, vb_baseline_th, no_onset_period_ms, 1, vibration_time_ms);
-
-% %% Test type detection
-% % Get unique onsets so that we can compare them with the box data
-% no_onset_period_index = no_onset_period_ms * 2;
-
-% unique_vb = getUniqueOnsets(vb_onset_indexes, no_onset_period_index);
-% unique_mv = getUniqueOnsets(mv_onset_indexes, no_onset_period_index);
-
-% % Use box data to get test type
-% trial_onset_index = zeros(1,trial_nbr); % 240 trials from 0 
-% for i = 1:trial_nbr
-%     trial_onset_index(i) = trial_segment{i}.sample_index;
-% end
-
-% box_trial_list = box_triallist;
-% [test_type, vb_index, mv_index, vb_fing, mv_fing] = getTestFromBox(trial_onset_index, box_trial_list, no_onset_period_index, unique_mv, unique_vb);
-
-%% Accuracy check
+%% Printing the RT values
 total_trials = test_type == box_triallist;
 correct_nbr = length(total_trials(total_trials==1));
 incorrect_nbr = length(total_trials(total_trials==0));
@@ -44,10 +17,9 @@ fprintf('\nAccuracy: %d of %d >> %f %%',correct_nbr,length(total_trials),correct
 fprintf('Not sure guesses: %d of %d >> %f %%\n',incorrect_nbr,length(total_trials),incorrect_nbr/length(total_trials)*100);
 fprintf('-------------------------------------------------------------------');
 
-%% RT comparison with box data
-% convert presstime to seconds
+% RT comparison with box data
 box_presstime(box_presstime ~= box_null_value) = box_presstime(box_presstime ~= box_null_value) * 1000 + 200; % add vibration duration delay & s to ms
-box_presstime = round(box_presstime);
+box_presstime = round(box_presstime); % convert presstime to seconds
 
 rt_acc_index = mv_index - vb_index;
 rt_acc = t(rt_acc_index) * 1000;
@@ -116,9 +88,7 @@ end
 %     ylim(plot_raw_lims(2,:));
 % end
 
-
 %% Plotting
-
 if enable_plots
     if plot_raw
         % Raw signal
@@ -135,10 +105,11 @@ if enable_plots
 
     if plot_ps
         % FFT
-        fft_raw = zeros(data_length, channel_nbr);
-        for i = 1:channel_nbr
-            fft_raw(:, i) = abs(fft(signal{i}.data)).^2 ./ data_length;
-        end
+        % fft_raw = zeros(data_length, channel_nbr);
+        fft_raw = abs(fft(signal)).^2 ./ data_length;
+        % for i = 1:channel_nbr
+        %     fft_raw(:, i) = abs(fft(signal{i}.data)).^2 ./ data_length;
+        % end
 
         f = (1:length(fft_raw)) * sampling / length(fft_raw);
 

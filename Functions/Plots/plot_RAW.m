@@ -14,7 +14,7 @@ function plot_RAW(signal, t, raw, vb_onset_indexes, mv_onset_indexes, raw_lims)
     end
 
     figure('Name', 'Raw Signal');
-    for i = 1:length(signal)
+    for i = 1:length(signal(1,:))
         subplot(length(signal)/2, length(signal)/2, i);
         hold on
         plot(t, raw(:,i));

@@ -43,12 +43,12 @@ enable_plots = 1; % Enable plots if 1 otherwise 0
 plot_raw = 1; % Plot raw data if 1 otherwise 0
 plot_raw_lims = [100, 130; -0.1, 1]; % [xmin, xmax; ymin, ymax], if empty, default values are used
 
-plot_ps = 0; % Plot power spectrum if 1 otherwise 0
+plot_ps = 1; % Plot power spectrum if 1 otherwise 0
 plot_ps_lims = [0, 400; 0, 10]; % [xmin, xmax; ymin, ymax], if empty, default values are used
 
-plot_tkeo = 0; % Plot TKEO data if 1 otherwise 0
+plot_tkeo = 1; % Plot TKEO data if 1 otherwise 0
 plot_tkeo_lims = [70, 90; -1e-4, 15e-4]; % [xmin, xmax; ymin, ymax], if empty, default values are used
 
-plot_rt = 0; % Plot RT coparison if 1 otherwise 0
+plot_rt = 1; % Plot RT coparison if 1 otherwise 0
 
 plot_rt_by_type = 0; % Plot RT comparison by test type if 1 otherwise 0

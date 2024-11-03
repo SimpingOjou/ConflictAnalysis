@@ -6,10 +6,11 @@ clc;
 parameters;
 
 % Compute the data
-[tkeo_movement_envelope, tkeo_vibration_envelope, mv_baseline_th, vb_baseline_th, trial_onset_index, test_type, vb_index, mv_index, vb_fing, mv_fing, vb_onset_indexes, mv_onset_indexes] = computeAll(signal, filter_order_mv, cutoff_low_mv, cutoff_high_mv, sampling, tkeo_window_size, vb_alpha, mv_alpha, no_onset_period_ms, vibration_time_ms, vb_filter_order, vb_cutoff_low, vb_cutoff_high, trial_nbr, trial_segment, box_triallist);
+% [tkeo_movement_envelope, tkeo_vibration_envelope, mv_baseline_th, vb_baseline_th, trial_onset_index, test_type, vb_index, mv_index, vb_fing, mv_fing, vb_onset_indexes, mv_onset_indexes, ratio_vb_mv] = computeAll(signal, filter_order_mv, cutoff_low_mv, cutoff_high_mv, sampling, tkeo_window_size, vb_alpha, mv_alpha, no_onset_period_ms, vibration_time_ms, vb_filter_order, vb_cutoff_low, vb_cutoff_high, trial_nbr, trial_segment, box_triallist);
+doAllComputing;
 
 % Get RT data
-getRTComparison(test_type, box_triallist, box_presstime, box_null_value, mv_index, vb_index, t)
+doRTComparison;
 
 %% TODO
 % get info about the previous type too
@@ -76,20 +77,16 @@ if enable_plots
 
         raw = filtfilt(b, a , signal);
 
-        plot_RAW(signal, t, raw, vb_onset_indexes, mv_onset_indexes, plot_raw_lims);
+        plot_RAW(signal, t, raw, vb_onset_indexes, mv_onset_indexes, plot_raw_lims, signal_ch_name);
     end
 
     if plot_ps
         % FFT
-        % fft_raw = zeros(data_length, channel_nbr);
-        fft_raw = abs(fft(signal)).^2 ./ data_length;
-        % for i = 1:channel_nbr
-        %     fft_raw(:, i) = abs(fft(signal{i}.data)).^2 ./ data_length;
-        % end
+        power_spectrum = abs(fft(signal)).^2 ./ data_length;
 
-        f = (1:length(fft_raw)) * sampling / length(fft_raw);
+        f = (1:length(power_spectrum)) * sampling / length(power_spectrum);
 
-        plot_PS(signal, f, fft_raw, plot_ps_lims);
+        plot_PS(signal, f, power_spectrum, plot_ps_lims, signal_ch_name);
     end
 
     if plot_tkeo

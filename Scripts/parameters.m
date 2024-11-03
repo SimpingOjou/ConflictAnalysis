@@ -5,8 +5,10 @@ cell_signal = accelerometer.channels;
 data_length = length(cell_signal{1}.data);
 channel_nbr = length(cell_signal);
 signal = zeros(data_length, channel_nbr); % Transform cell to matrix
+signal_ch_name = cell(1, channel_nbr);
 for i = 1:channel_nbr
     signal(:,i) = cell_signal{i}.data;
+    signal_ch_name{i} = cell_signal{i}.name;
 end
 trial_segment = accelerometer.event_markers;
 trial_nbr = length(trial_segment);
@@ -51,4 +53,4 @@ plot_tkeo_lims = [70, 90; -1e-4, 15e-4]; % [xmin, xmax; ymin, ymax], if empty, d
 
 plot_rt = 1; % Plot RT coparison if 1 otherwise 0
 
-plot_rt_by_type = 0; % Plot RT comparison by test type if 1 otherwise 0
+plot_rt_by_type = 1; % Plot RT comparison by test type if 1 otherwise 0

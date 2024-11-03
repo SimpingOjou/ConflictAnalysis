@@ -1,8 +1,7 @@
-function plot_PS(signal, f, fft_raw, ps_lims, signal_ch_name)
+function plot_PS(f, fft_raw, ps_lims, signal_ch_name)
     % This function plots the power spectrum for given signal.
     % 
     % Inputs:
-    %   signal - a cell array containing signal data
     %   f - a vector containing frequency values
     %   fft_raw - a matrix containing FFT of the raw signal
     %   ps_lims - an optional parameter for additional customization (default: []). i.e. ps_lims = [xlim; ylim]
@@ -13,13 +12,17 @@ function plot_PS(signal, f, fft_raw, ps_lims, signal_ch_name)
     end
 
     figure('Name', 'Power Spectrum');
-    for i = 1:length(signal(1,:))
-        subplot(3, 3, i);
+    subplot_len = length(signal_ch_name(:,1));
+    if subplot_len > 2
+        subplot_len = subplot_len / 2;
+    end
+    for i = 1:length(signal_ch_name(:,1))
+        subplot(subplot_len, length(signal_ch_name(:,1))/2, i);
         hold on 
         plot(f, fft_raw(:,i))
         hold off
 
-        title(signal_ch_name{i} + " PS")
+        title(signal_ch_name(i,:) + " PS")
         ylabel('Magnitude')
         xlabel('fz [Hz]')
         grid("on")

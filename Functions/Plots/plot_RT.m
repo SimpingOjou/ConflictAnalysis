@@ -2,10 +2,9 @@ function plot_RT(rt_acc, cued_presstime, box_null_value)
     % This function plots reaction times (rt_acc) and cued presentation times (cued_presstime)
     % It also fits a linear trend to both sets of data and plots these trends.
     % Inputs:
-    %   rt_acc - Reaction times (array)
-    %   cued_presstime - Cued presentation times (array)
-    
-    box_null_value = box_null_value * 1000;
+    %   rt_acc - Reaction times (array) [ms]
+    %   cued_presstime - Cued presentation times (array) [ms]
+    %   box_null_value - Null value for cued presentation times 
 
     valid_presstimes = cued_presstime(cued_presstime ~= box_null_value);
 

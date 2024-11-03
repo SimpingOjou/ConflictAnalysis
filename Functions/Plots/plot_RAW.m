@@ -3,7 +3,7 @@ function plot_RAW(signal, t, raw, vb_onset_indexes, mv_onset_indexes, raw_lims, 
     % 
     % Inputs:
     %   signal - a cell array containing channel information
-    %   t - a vector containing time values
+    %   t - a vector containing time values [s]
     %   raw - a matrix containing raw signal data
     %   vb_onset_indexes - a cell array containing indexes of vibration onsets
     %   mv_onset_indexes - a cell array containing indexes of movement onsets
@@ -22,7 +22,7 @@ function plot_RAW(signal, t, raw, vb_onset_indexes, mv_onset_indexes, raw_lims, 
         scatter(t(vb_onset_indexes{i}), raw(vb_onset_indexes{i}, i), 'filled', 'o');
         scatter(t(mv_onset_indexes{i}), raw(mv_onset_indexes{i}, i), 'filled', 'o');
         hold off
-        title(signal_ch_name{i} + " RAW");
+        title(signal_ch_name(i,:) + " RAW");
         legend('Signal', 'Vibration onsets', 'Movement onsets');
         xlabel('t [s]');
         ylabel('acceleration(m/s^2)');

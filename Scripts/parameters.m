@@ -5,11 +5,12 @@ cell_signal = accelerometer.channels;
 data_length = length(cell_signal{1}.data);
 channel_nbr = length(cell_signal);
 signal = zeros(data_length, channel_nbr); % Transform cell to matrix
-signal_ch_name = cell(1, channel_nbr);
+signal_ch_name = zeros(channel_nbr, length(cell_signal{1}.name));
 for i = 1:channel_nbr
     signal(:,i) = cell_signal{i}.data;
-    signal_ch_name{i} = cell_signal{i}.name;
+    signal_ch_name(i,:) = cell_signal{i}.name;
 end
+signal_ch_name = char(signal_ch_name);
 trial_segment = accelerometer.event_markers;
 trial_nbr = length(trial_segment);
 t = linspace(0, data_length/2, data_length) / 1000;
@@ -42,15 +43,15 @@ vb_alpha = 0.7; % Multiplier for standard deviation. Used for onset detection fo
 % Plot flags
 enable_plots = 1; % Enable plots if 1 otherwise 0
 
-plot_raw = 1; % Plot raw data if 1 otherwise 0
+plot_raw = 0; % Plot raw data if 1 otherwise 0
 plot_raw_lims = [100, 130; -0.1, 1]; % [xmin, xmax; ymin, ymax], if empty, default values are used
 
 plot_ps = 1; % Plot power spectrum if 1 otherwise 0
 plot_ps_lims = [0, 400; 0, 10]; % [xmin, xmax; ymin, ymax], if empty, default values are used
 
-plot_tkeo = 1; % Plot TKEO data if 1 otherwise 0
+plot_tkeo = 0; % Plot TKEO data if 1 otherwise 0
 plot_tkeo_lims = [70, 90; -1e-4, 15e-4]; % [xmin, xmax; ymin, ymax], if empty, default values are used
 
-plot_rt = 1; % Plot RT coparison if 1 otherwise 0
+plot_rt = 0; % Plot RT coparison if 1 otherwise 0
 
-plot_rt_by_type = 1; % Plot RT comparison by test type if 1 otherwise 0
+plot_rt_by_type = 0; % Plot RT comparison by test type if 1 otherwise 0

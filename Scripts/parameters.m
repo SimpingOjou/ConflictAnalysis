@@ -35,13 +35,13 @@ mv_alpha = 1; % Multiplier for standard deviation. Used for onset detection for 
 
 % Vibration detection parameters
 vibration_time_ms = 180; % Vibration duration in ms
-vb_cutoff_low = 120; % Low cutoff frequency for vibration detection (Hz)
-vb_cutoff_high = 130; % High cutoff frequency for vibration detection (Hz)
+vb_cutoff_low = 120;%220;%120; % Low cutoff frequency for vibration detection (Hz)
+vb_cutoff_high = 130;%230;%130; % High cutoff frequency for vibration detection (Hz)
 vb_filter_order = 6; % Filter order for vibration detection
 vb_alpha = 0.7; % Multiplier for standard deviation. Used for onset detection for vibration. Higher value means more strict onset detection
 
 % Plot flags
-enable_plots = 1; % Enable plots if 1 otherwise 0
+enable_plots = 0; % Enable plots if 1 otherwise 0
 
 plot_raw = 0; % Plot raw data if 1 otherwise 0
 plot_raw_lims = [100, 130; -0.1, 1]; % [xmin, xmax; ymin, ymax], if empty, default values are used

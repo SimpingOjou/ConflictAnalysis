@@ -6,7 +6,11 @@ function [result] = getUniqueOnsets(onsets, min_distance_ms)
     % Output:
     % - result: array of unique onsets that are at least min_distance_ms apart
 
-    unique_onsets = unique([onsets{1}', onsets{2}', onsets{3}', onsets{4}', onsets{5}', onsets{6}']);
+    temp = [];
+    for i = 1:length(onsets)
+        temp = [temp, onsets{i}'];
+    end
+    unique_onsets = unique(temp);
 
     result = unique_onsets(1);
     for i = 2:length(unique_onsets)
@@ -16,5 +20,4 @@ function [result] = getUniqueOnsets(onsets, min_distance_ms)
             result = [result, unique_onsets(i)]; 
         end
     end
-
 end

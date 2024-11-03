@@ -23,8 +23,12 @@ function plot_TKEO(t, tkeo_movement_envelope, tkeo_vibration_envelope, vb_onset_
     end
 
     figure('Name', 'TKEO Movement and Vibration Envelopes');
-    for i = 1:3
-        subplot(3,3,i);
+    subplot_len = length(tkeo_movement_envelope(1,:));
+    if subplot_len > 2
+        subplot_len = subplot_len / 2;
+    end
+    for i = 1:length(tkeo_movement_envelope(1,:))/2
+        subplot(subplot_len, length(tkeo_movement_envelope(1,:))/2, i);
         ch = i;
         hold on
         plot(t, tkeo_movement_envelope(:,ch)*ratio_vb_mv(ch), t, tkeo_vibration_envelope(:,ch));
@@ -44,8 +48,8 @@ function plot_TKEO(t, tkeo_movement_envelope, tkeo_vibration_envelope, vb_onset_
         grid("on");
     end
 
-    for i = 4:6
-        subplot(3,3,i);
+    for i = length(tkeo_movement_envelope(1,:))/2+1:length(tkeo_movement_envelope(1,:))
+        subplot(subplot_len, length(tkeo_movement_envelope(1,:))/2, i);
         ch = i;
         hold on
         plot(t, tkeo_movement_envelope(:,ch)*ratio_vb_mv(ch), t, tkeo_vibration_envelope(:,ch));

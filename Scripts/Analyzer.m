@@ -12,56 +12,6 @@ doDetection;
 % Get RT data
 doRTComparison;
 
-%% TODO
-% get info about the previous type too
-% test out on 2nd run
-% mean plot for all tests (butterfly plot)
-% tkeo over sum of all signal
-% normalize mv and vb -> get finger onset
-% box onset has 200ms offset to my data. fix it
-% box before acc is impossible
-% see everything from acc
-% point at uncertainties from tkeo
-% find agnostic way to determine rt
-% find too fast rts
-% write like a methods section
-s = signal;
-
-% Normalize vibration and movement sizes compared to the first signal
-fdi_ratio_12 = mean(s(:,1) ./ s(:,2));
-fdi_ratio_13 = mean(s(:,1) ./ s(:,3));
-adm_ratio_45 = mean(s(:,4) ./ s(:,5));
-adm_ratio_46 = mean(s(:,4) ./ s(:,6));
-
-summated_signal = zeros(length(s), 2);
-summated_signal(:,1) = s(:,1) + s(:,2)./fdi_ratio_12 + s(:,3)./fdi_ratio_13;
-summated_signal(:,2) = s(:,4) + s(:,5)./adm_ratio_45 + s(:,6)./adm_ratio_46;
-
-cutoff_low = 1; 
-cutoff_high = 400; 
-filter_order = 1;
-
-[b, a] = butter(filter_order, [cutoff_low/(sampling/2), cutoff_high/(sampling/2)], 'bandpass');
-
-summated_signal_raw = filtfilt(b, a , summated_signal);
-
-figure()
-for i = 1:length(summated_signal(1,:))
-    subplot(2, 1, i);
-    hold on
-    plot(t, summated_signal_raw(:,i));
-    scatter(t(vb_onset_indexes{i}), summated_signal_raw(vb_onset_indexes{i}, i), 'filled', 'o');
-    scatter(t(mv_onset_indexes{i}), summated_signal_raw(mv_onset_indexes{i}, i), 'filled', 'o');
-    hold off
-    title(signal_ch_name(i,:) + " RAW");
-    legend('summated_signal_raw', 'Vibration onsets', 'Movement onsets');
-    xlabel('t [s]');
-    ylabel('acceleration (m/s^2)');
-    grid("on");
-    xlim(plot_raw_lims(1,:));
-    ylim(plot_raw_lims(2,:));
-end
-
 %% Plotting
 if enable_plots
     if plot_raw
@@ -98,9 +48,17 @@ if enable_plots
     end
 end
 
-summated_ps = abs(fft(summated_signal)).^2 ./ data_length;
-f = (1:length(summated_ps)) * sampling / length(summated_ps);
-titles = ["FDI"; "ADM"];
-plot_PS(f, summated_ps, plot_ps_lims, titles);
+%% TODO
+% get info about the previous type too
+% test out on 2nd run
+% normalize mv and vb -> get finger onset
+% box before acc is impossible
+% see everything from acc
+% point at uncertainties from tkeo
+% find agnostic way to determine rt
+% find too fast rts
+% write like a methods section
 
-% filter at 400?
+doDetectionMagnitude;
+
+doRTComparison;

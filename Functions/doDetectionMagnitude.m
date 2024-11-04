@@ -49,27 +49,27 @@ box_trial_list = box_triallist;
 % titles = ["FDI"; "ADM"];
 % plot_PS(f, magnitude_ps, plot_ps_lims, titles);
 
-cutoff_low = 1; 
-cutoff_high = 400; 
-filter_order = 1;
+% cutoff_low = 1; 
+% cutoff_high = 400; 
+% filter_order = 1;
 
-[b, a] = butter(filter_order, [cutoff_low/(sampling/2), cutoff_high/(sampling/2)], 'bandpass');
+% [b, a] = butter(filter_order, [cutoff_low/(sampling/2), cutoff_high/(sampling/2)], 'bandpass');
 
-signal_magnitude_raw = filtfilt(b, a , signal_magnitude);
+% signal_magnitude_raw = filtfilt(b, a , signal_magnitude);
 
-figure()
-for i = 1:length(signal_magnitude_raw(1,:))
-    subplot(2, 1, i);
-    hold on
-    plot(t, signal_magnitude_raw(:,i));
-    scatter(t(vb_onset_indexes{i}), signal_magnitude_raw(vb_onset_indexes{i}, i), 'filled', 'o');
-    scatter(t(mv_onset_indexes{i}), signal_magnitude_raw(mv_onset_indexes{i}, i), 'filled', 'o');
-    hold off
-    title(signal_ch_name(i,:) + " RAW");
-    legend('Acceleration magnitude', 'Vibration onsets', 'Movement onsets');
-    xlabel('t [s]');
-    ylabel('acceleration (m/s^2)');
-    grid("on");
-    xlim(plot_raw_lims(1,:));
-    ylim(plot_raw_lims(2,:));
-end
+% figure()
+% for i = 1:length(signal_magnitude_raw(1,:))
+%     subplot(2, 1, i);
+%     hold on
+%     plot(t, signal_magnitude_raw(:,i));
+%     scatter(t(vb_onset_indexes{i}), signal_magnitude_raw(vb_onset_indexes{i}, i), 'filled', 'o');
+%     scatter(t(mv_onset_indexes{i}), signal_magnitude_raw(mv_onset_indexes{i}, i), 'filled', 'o');
+%     hold off
+%     title(signal_ch_name(i,:) + " RAW");
+%     legend('Acceleration magnitude', 'Vibration onsets', 'Movement onsets');
+%     xlabel('t [s]');
+%     ylabel('acceleration (m/s^2)');
+%     grid("on");
+%     xlim(plot_raw_lims(1,:));
+%     ylim(plot_raw_lims(2,:));
+% end

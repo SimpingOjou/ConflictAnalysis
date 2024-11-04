@@ -19,19 +19,16 @@ fprintf('Not sure guesses: %d of %d >> %f %%\n',incorrect_nbr,length(total_trial
 fprintf('-------------------------------------------------------------------');
 
 % RT comparison with box data
-new_box_presstime = box_presstime(box_presstime ~= box_null_value) * 1000 + 200; % add vibration duration delay & s to ms
-new_box_presstime = round(new_box_presstime); % convert presstime to seconds
-
 rt_acc_index = mv_index - vb_index;
 rt_acc = t(rt_acc_index) * 1000;
 
-fprintf('\nAverage rt | Accelerometer: %f ms | Box: %f ms', mean(rt_acc), mean(new_box_presstime));
-fprintf('-------------------------------------------------------------------\n');
+fprintf('\nAverage rt | Accelerometer: %f ms | Box: %f ms', mean(rt_acc), mean(box_presstime(box_presstime ~= box_null_value)));
+fprintf('-------------------------------------------------------------------');
 
 % Divide rt based on test type
 acc_test_type = test_type(test_type ~= 0);
 
 for i = 1:4
-    fprintf('\nAverage rt (test %d) | Accelerometer: %f ms | Box: %f ms', i, mean(rt_acc(acc_test_type == i)), mean(box_presstime(box_presstime ~= box_null_value & box_triallist == i)  * 1000 + 200));
-    fprintf('-------------------------------------------------------------------\n');
+    fprintf('\nAverage rt (test %d) | Accelerometer: %f ms | Box: %f ms', i, mean(rt_acc(acc_test_type == i)), mean(box_presstime(box_presstime ~= box_null_value & box_triallist == i)));
+    fprintf('-------------------------------------------------------------------');
 end

@@ -6,8 +6,9 @@ clc;
 parameters;
 
 % Compute the data
-% [tkeo_movement_envelope, tkeo_vibration_envelope, mv_baseline_th, vb_baseline_th, trial_onset_index, test_type, vb_index, mv_index, vb_fing, mv_fing, vb_onset_indexes, mv_onset_indexes, ratio_vb_mv] = computeAll(signal, filter_order_mv, cutoff_low_mv, cutoff_high_mv, sampling, tkeo_window_size, vb_alpha, mv_alpha, no_onset_period_ms, vibration_time_ms, vb_filter_order, vb_cutoff_low, vb_cutoff_high, trial_nbr, trial_segment, box_triallist);
-doDetection;
+% doDetection;
+doDetectionMagnitude;
+% doSegmentedDetection;
 
 % Get RT data
 doRTComparison;
@@ -24,7 +25,7 @@ if enable_plots
 
         raw = filtfilt(b, a , signal);
 
-        plot_RAW(signal, t, raw, vb_onset_indexes, mv_onset_indexes, plot_raw_lims, signal_ch_name);
+        plot_RAW(signal_magnitude, t, raw, vb_onset_indexes, mv_onset_indexes, plot_raw_lims, signal_ch_name);
     end
 
     if plot_ps
@@ -58,7 +59,13 @@ end
 % find agnostic way to determine rt
 % find too fast rts
 % write like a methods section
+% manually count bc i don't trust the code
+% compound vibration signal
+% if both fingers no vb -> skip test
 
-doDetectionMagnitude;
 
-doRTComparison;
+% doDetectionMagnitude;
+
+% doRTComparison;
+
+% plot_RT_by_type(rt_acc, acc_test_type, box_presstime, box_triallist, box_null_value);

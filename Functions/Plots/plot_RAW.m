@@ -1,4 +1,4 @@
-function plot_RAW(signal, t, raw, vb_onset_indexes, mv_onset_indexes, raw_lims, signal_ch_name)
+function plot_RAW(signal, t, raw, vb_onset_indexes, mv_onset_indexes, raw_lims, signal_ch_name, segmentation_points)
     % This function plots the raw signal for given signal.
     % 
     % Inputs:
@@ -9,12 +9,13 @@ function plot_RAW(signal, t, raw, vb_onset_indexes, mv_onset_indexes, raw_lims, 
     %   mv_onset_indexes - a cell array containing indexes of movement onsets
     %   raw_lims - an optional parameter for additional customization (default: []). i.e. raw_lims = [xlim; ylim]
     %   signal_ch_name - a cell array containing channel names
+    %   segmentation_points - a vector containing segmentation points [s]
 
     if isempty(raw_lims)
         raw_lims = [];
     end
 
-    segmentation_points = 0:2:t(end);
+    % segmentation_points = 0:2:t(end)-2;
 
     figure('Name', 'Raw Signal');
     subplot_len = length(signal_ch_name(:,1));
@@ -27,10 +28,10 @@ function plot_RAW(signal, t, raw, vb_onset_indexes, mv_onset_indexes, raw_lims, 
         plot(t, raw(:,i));
         scatter(t(vb_onset_indexes{i}), raw(vb_onset_indexes{i}, i), 'filled', 'o');
         scatter(t(mv_onset_indexes{i}), raw(mv_onset_indexes{i}, i), 'filled', 'o');
-        xline(segmentation_points, '--');
+        xline(segmentation_points, '--', 'HandleVisibility', 'off');
         hold off
         title(signal_ch_name(i,:) + " RAW");
-        % legend('Signal', 'Vibration onsets', 'Movement onsets');
+        legend('Signal', 'Vibration onsets', 'Movement onsets');
         xlabel('t [s]');
         ylabel('acceleration(m/s^2)');
         grid("on");

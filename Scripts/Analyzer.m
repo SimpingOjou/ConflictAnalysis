@@ -7,8 +7,8 @@ parameters;
 
 % Compute the data
 % doDetection;
-doDetectionMagnitude;
-% doSegmentedDetection;
+% doDetectionMagnitude;
+doSegmentedDetection;
 
 % Get RT data
 doRTComparison;
@@ -25,7 +25,7 @@ if enable_plots
 
         raw = filtfilt(b, a , signal);
 
-        plot_RAW(signal_magnitude, t, raw, vb_onset_indexes, mv_onset_indexes, plot_raw_lims, signal_ch_name);
+        plot_RAW(signal, t, raw, vb_onset_indexes, mv_onset_indexes, plot_raw_lims, signal_ch_name, segmentation_points);
     end
 
     if plot_ps
@@ -62,7 +62,6 @@ end
 % manually count bc i don't trust the code
 % compound vibration signal
 % if both fingers no vb -> skip test
-
 
 % doDetectionMagnitude;
 

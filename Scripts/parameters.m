@@ -14,6 +14,8 @@ signal_ch_name = char(signal_ch_name);
 trial_segment = accelerometer.event_markers;
 trial_nbr = length(trial_segment);
 t = linspace(0, data_length/2, data_length) / 1000;
+trial_length = 2; % Length of each trial in seconds
+segmentation_points = 0:trial_length:t(end)-2;
 
 % Load box data
 box_data = load('1330_1_2021_Jul_13_1449_V_cued_r_time.mat');
@@ -46,7 +48,7 @@ vb_alpha = 0.7; % Multiplier for standard deviation. Used for onset detection fo
 enable_plots = 1; % Enable plots if 1 otherwise 0
 
 plot_raw = 1; % Plot raw data if 1 otherwise 0
-plot_raw_lims = [100, 130; -0.1, 1]; % [xmin, xmax; ymin, ymax], if empty, default values are used
+plot_raw_lims = [450, 482; -0.1, 1]; % [xmin, xmax; ymin, ymax], if empty, default values are used [s]
 
 plot_ps = 0; % Plot power spectrum if 1 otherwise 0
 plot_ps_lims = [0, 400; 0, 10]; % [xmin, xmax; ymin, ymax], if empty, default values are used

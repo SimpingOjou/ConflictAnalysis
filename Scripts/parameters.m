@@ -56,6 +56,6 @@ plot_ps_lims = [0, 400; 0, 10]; % [xmin, xmax; ymin, ymax], if empty, default va
 plot_tkeo = 1; % Plot TKEO data if 1 otherwise 0
 plot_tkeo_lims = [70, 90; -1e-4, 15e-4]; % [xmin, xmax; ymin, ymax], if empty, default values are used
 
-plot_rt = 0; % Plot RT coparison if 1 otherwise 0
+plot_rt = 1; % Plot RT coparison if 1 otherwise 0
 
-plot_rt_by_type = 0; % Plot RT comparison by test type if 1 otherwise 0
+plot_rt_by_type = 1; % Plot RT comparison by test type if 1 otherwise 0

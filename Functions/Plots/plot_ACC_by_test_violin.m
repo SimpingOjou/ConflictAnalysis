@@ -1,4 +1,4 @@
-function plot_ACC_by_type_violin(rt_acc, acc_test_type)
+function plot_ACC_by_test_violin(rt_acc, acc_test_type)
     % Violin plot for data distribution
     test_types = unique(acc_test_type);
     num_tests = length(test_types);
@@ -23,7 +23,7 @@ function plot_ACC_by_type_violin(rt_acc, acc_test_type)
         stds = [stds; std(current_rt)];
 
         % Create grouping variable
-        groupname = ['Type ' num2str(test_types(i))];
+        groupname = ['Trial ' num2str(test_types(i))];
         xgroupdata = categorical(cellstr(repelem(groupname, length(current_rt), 1))); % Convert to cellstr
 
         % Append data to the arrays

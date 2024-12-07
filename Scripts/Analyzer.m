@@ -14,6 +14,9 @@ doSegmentedDetection;
 % doRTComparison;
 doSegmentedRTComparison;
 
+% Statistical analysis
+doSegmentedStatisticalAnalysis;
+
 %% Plotting
 
 % doPlots;

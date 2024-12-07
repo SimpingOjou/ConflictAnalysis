@@ -45,7 +45,7 @@ vb_filter_order = 6; % Filter order for vibration detection
 vb_alpha = 0.7; % Multiplier for standard deviation. Used for onset detection for vibration. Higher value means more strict onset detection
 
 % Plot flags
-enable_plots = 1; % Enable plots if 1 otherwise 0
+enable_plots = 0; % Enable plots if 1 otherwise 0
 
 plot_raw = 1; % Plot raw data if 1 otherwise 0
 plot_raw_lims = [450, 482; -0.1, 1]; % [xmin, xmax; ymin, ymax], if empty, default values are used [s]
@@ -61,3 +61,5 @@ plot_rt = 1; % Plot RT coparison if 1 otherwise 0
 plot_rt_by_type = 1; % Plot RT comparison by test type if 1 otherwise 0
 
 plot_acc_vs_box_violin = 1; % Plot violin plot acc vs box if 1 otherwise 0
+
+plot_histogram = 1; % Plot histogram if 1 otherwise 0

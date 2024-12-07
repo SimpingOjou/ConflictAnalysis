@@ -36,4 +36,12 @@ if enable_plots
     if plot_acc_vs_box_violin
         plot_ACCvsBOX_violin(rt_acc, acc_test_type, box_presstime, box_triallist, box_null_value);
     end
+
+    if plot_acc_by_test_violin
+        plot_ACCbyTEST_violin(rt_acc, acc_test_type);
+    end
+
+    if plot_histogram
+        plot_Histogram(rt_acc, acc_test_type);
+    end
 end

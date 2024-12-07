@@ -59,3 +59,5 @@ plot_tkeo_lims = [70, 90; -1e-4, 15e-4]; % [xmin, xmax; ymin, ymax], if empty, d
 plot_rt = 1; % Plot RT coparison if 1 otherwise 0
 
 plot_rt_by_type = 1; % Plot RT comparison by test type if 1 otherwise 0
+
+plot_acc_vs_box_violin = 1; % Plot violin plot acc vs box if 1 otherwise 0

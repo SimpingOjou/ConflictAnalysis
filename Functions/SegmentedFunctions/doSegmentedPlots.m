@@ -32,4 +32,8 @@ if enable_plots
     if plot_rt_by_type
         plot_RT_by_type(rt_acc, acc_test_type, box_presstime, box_triallist, box_null_value);
     end
+
+    if plot_acc_vs_box_violin
+        plot_ACCvsBOX_violin(rt_acc, acc_test_type, box_presstime, box_triallist, box_null_value);
+    end
 end

@@ -24,6 +24,8 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
         end
 
         if show_GUI
+            disp(vb_index(i))
+            disp(mv_index(i))
             % Create a GUI window showing the signal during the current segment
             % and ask the user to fix the detection
             fig_title = sprintf('Segment %d: RT = %.2f s', i, current_rt);
@@ -42,14 +44,19 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
             data.plot1mv = [];
             data.plot2vb = [];
             data.plot2mv = [];
+            data.index = i;
             guidata(fig, data);
 
             % Plot signals
             subplot(2, 1, 1);
             hold on;
             plot(t(locStart:locEnd), signal(locStart:locEnd, 1));
-            plot(t(current_vb_index), signal(current_vb_index, 1), '*', 'LineWidth', 1.5);
-            plot(t(current_mv_index), signal(current_mv_index, 1), '*', 'LineWidth', 1.5);
+            if current_vb_index > 0
+                plot(t(current_vb_index), signal(current_vb_index, 1), '*', 'LineWidth', 1.5);
+            end
+            if current_mv_index > 0
+                plot(t(current_mv_index), signal(current_mv_index, 1), '*', 'LineWidth', 1.5);
+            end
             data.plot1vb = plot(NaN, NaN, '*', 'LineWidth', 1.5); % Placeholder for vibration onset
             data.plot1mv = plot(NaN, NaN, '*', 'LineWidth', 1.5); % Placeholder for movement onset
             title('Signal 1');
@@ -60,8 +67,12 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
             subplot(2, 1, 2);
             hold on;
             plot(t(locStart:locEnd), signal(locStart:locEnd, 2));
-            plot(t(current_vb_index), signal(current_vb_index, 2), '*', 'LineWidth', 1.5);
-            plot(t(current_mv_index), signal(current_mv_index, 2), '*', 'LineWidth', 1.5);
+            if current_vb_index > 0
+                plot(t(current_vb_index), signal(current_vb_index, 2), '*', 'LineWidth', 1.5);
+            end
+            if current_mv_index > 0
+                plot(t(current_mv_index), signal(current_mv_index, 2), '*', 'LineWidth', 1.5);
+            end
             data.plot2vb = plot(NaN, NaN, '*', 'LineWidth', 1.5); % Placeholder for vibration onset
             data.plot2mv = plot(NaN, NaN, '*', 'LineWidth', 1.5); % Placeholder for movement onset
             title('Signal 2');
@@ -85,8 +96,15 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
                 'Position', [0.4 0.01 0.3 0.05], ...
                 'Callback', @(src, event) setMovementOnset(fig));
             uiwait(fig);
+            data = guidata(fig); % Retrieve updated data after GUI
             close(fig);
+
+            vb_index(i) = data.vb_index(i);
+            mv_index(i) = data.mv_index(i);
+            disp(data.vb_index(data.index))
+            disp(data.mv_index(data.index))
         end
+        
     end
 end
 
@@ -101,7 +119,7 @@ function setVibrationOnset(fig)
     [~, idx] = min(abs(data.t - x));
 
     % Update vibration onset
-    data.vb_index = idx;
+    data.vb_index(data.index) = idx;
 
     % Update plot markers
     set(data.plot1vb, 'XData', data.t(idx), 'YData', data.signal(idx, 1)); % First plot
@@ -122,7 +140,7 @@ function setMovementOnset(fig)
     [~, idx] = min(abs(data.t - x));
 
     % Update vibration onset
-    data.vb_index = idx;
+    data.mv_index(data.index) = idx;
 
     % Update plot markers
     set(data.plot1mv, 'XData', data.t(idx), 'YData', data.signal(idx, 1)); % First plot

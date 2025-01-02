@@ -10,7 +10,6 @@ parameters;
 % doDetectionMagnitude;
 doSegmentedDetection;
 
-whos
 % Fix not likely data with GUI
 % normalized_signal = getNormalizedSignal(signal);
 normalized_signal = [signal(:,1), signal(:,4)]; % TO CHANGE

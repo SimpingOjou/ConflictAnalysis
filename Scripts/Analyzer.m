@@ -10,6 +10,12 @@ parameters;
 % doDetectionMagnitude;
 doSegmentedDetection;
 
+whos
+% Fix not likely data with GUI
+% normalized_signal = getNormalizedSignal(signal);
+normalized_signal = [signal(:,1), signal(:,4)]; % TO CHANGE
+[test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_type, vb_index, mv_index, vb_fing, mv_fing, segmentation_points_index, t, normalized_signal);
+
 % Get RT data
 % doRTComparison;
 doSegmentedRTComparison;
@@ -21,6 +27,10 @@ doSegmentedStatisticalAnalysis;
 
 % doPlots;
 doSegmentedPlots;
+
+% Save variables into a file -> use python to do statistical analysis
+% Visualize all variables
+% whos;
 
 %% TODO
 % get info about the previous type too
@@ -47,6 +57,12 @@ doSegmentedPlots;
 % pinky d5 corresponds to y
 % 1 = FDI vb and ADM mv
 % 2 = ADM vb and FDI mv
+
+% batch and manual gui (visualize runs if they're outliers (do it the physiological way: >700 and <200))
+% output outlier # -> show - 0.1s + 1s on normalized signal
+% try to click GUI (y/n)
+% sequence influences conflict (switch makes slower (look into the run before))
+% program t.c. find onset vb and response -> segment response type -> 20 subj
 
 % doDetectionMagnitude;
 

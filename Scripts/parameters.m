@@ -25,6 +25,7 @@ box_null_value = 99; % Value used in the box data to indicate no response
 box_presstime(box_presstime ~= box_null_value) = box_presstime(box_presstime ~= box_null_value) * 1000 + 200;
 box_presstime = round(box_presstime); % Round to the nearest integer
 
+output_filename = strcat("1330_1_2021_Jul_13_1449", ".mat");
 clear("accelerometer", "box_data");
 
 %% Parameters for tuning of the analysis

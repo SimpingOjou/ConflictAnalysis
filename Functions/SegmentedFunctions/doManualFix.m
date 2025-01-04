@@ -40,6 +40,7 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
             data.mv_index = mv_index;
             data.vb_fing = vb_fing;
             data.mv_fing = mv_fing;
+            data.test_type = test_type;
             data.plot1vb = [];
             data.plot1mv = [];
             data.plot2vb = [];
@@ -108,6 +109,10 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
                 'String', 'Next', 'Units', 'normalized',...
                 'Position', [0.8 0.01 0.1 0.05], ...
                 'Callback', 'uiresume(gcbf)');
+            uicontrol('Parent', fig, 'Style', 'pushbutton', ...
+                'String', 'Delete', 'Units', 'normalized',...
+                'Position', [0.1 0.01 0.3 0.05], ...
+                'Callback', @(src, event) deleteRun(fig));
             uicontrol('Parent', fig, 'Style', 'togglebutton', ...
                 'String', 'Select vibration onset', 'Units', 'normalized',...
                 'Position', [0.1 0.01 0.3 0.05], ...
@@ -122,9 +127,44 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
 
             vb_index(i) = data.vb_index(i);
             mv_index(i) = data.mv_index(i);
+            test_type(i) = updateTestType(data);
         end
-        
     end
+end
+
+function [test_type] = updateTestType(data)
+    test_type = -1;
+    % Update test type based on the selected onsets
+    if data.vb_fing(data.index) == 1 && data.mv_fing(data.index) == 2
+        test_type = 1;
+    end
+    if data.vb_fing(data.index) == 2 && data.mv_fing(data.index) == 1
+        test_type = 2;
+    end
+    if data.vb_fing(data.index) == 1 && data.mv_fing(data.index) == 1
+        test_type = 3;
+    end
+    if data.vb_fing(data.index) == 2 && data.mv_fing(data.index) == 2
+        test_type = 4;
+    end
+end
+
+function deleteRun(fig)
+    % Retrieve shared data
+    data = guidata(fig);
+
+    % Update vibration onset
+    data.vb_index(data.index) = -1;
+    data.mv_index(data.index) = -1;
+
+    % Update plot markers
+    set(data.plot1vb, 'XData', NaN, 'YData', NaN); % First plot
+    set(data.plot2vb, 'XData', NaN, 'YData', NaN); % Second plot
+    set(data.plot1mv, 'XData', NaN, 'YData', NaN); % First plot
+    set(data.plot2mv, 'XData', NaN, 'YData', NaN); % Second plot
+
+    % Save updated data
+    guidata(fig, data);
 end
 
 function setVibrationOnset(fig)

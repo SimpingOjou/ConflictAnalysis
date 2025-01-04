@@ -24,8 +24,6 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
         end
 
         if show_GUI
-            disp(vb_index(i))
-            disp(mv_index(i))
             % Create a GUI window showing the signal during the current segment
             % and ask the user to fix the detection
             fig_title = sprintf('Segment %d: RT = %.2f s', i, current_rt);
@@ -40,6 +38,8 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
             data.signal = signal;
             data.vb_index = vb_index;
             data.mv_index = mv_index;
+            data.vb_fing = vb_fing;
+            data.mv_fing = mv_fing;
             data.plot1vb = [];
             data.plot1mv = [];
             data.plot2vb = [];
@@ -59,8 +59,9 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
             end
             data.plot1vb = plot(NaN, NaN, '*', 'LineWidth', 1.5); % Placeholder for vibration onset
             data.plot1mv = plot(NaN, NaN, '*', 'LineWidth', 1.5); % Placeholder for movement onset
-            title('Signal 1');
-            legend('Signal', 'Vibration', 'Movement');
+            title('FDI');
+            legend('Signal', 'Vibration', 'Movement', 'Location', 'south', 'Orientation', 'horizontal');
+            xlabel('Time (s)');
             grid on;
             hold off;
 
@@ -75,8 +76,8 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
             end
             data.plot2vb = plot(NaN, NaN, '*', 'LineWidth', 1.5); % Placeholder for vibration onset
             data.plot2mv = plot(NaN, NaN, '*', 'LineWidth', 1.5); % Placeholder for movement onset
-            title('Signal 2');
-            legend('Signal', 'Vibration', 'Movement');
+            title('ADM');
+            legend('Signal', 'Vibration', 'Movement', 'Location', 'south', 'Orientation', 'horizontal');
             grid on;
             hold off;
 
@@ -101,8 +102,6 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
 
             vb_index(i) = data.vb_index(i);
             mv_index(i) = data.mv_index(i);
-            disp(data.vb_index(data.index))
-            disp(data.mv_index(data.index))
         end
         
     end
@@ -120,6 +119,9 @@ function setVibrationOnset(fig)
 
     % Update vibration onset
     data.vb_index(data.index) = idx;
+
+    % Create a popup with two tickboxes
+    data.vb_fing(data.index) = createPopup(data.vb_fing(data.index));
 
     % Update plot markers
     set(data.plot1vb, 'XData', data.t(idx), 'YData', data.signal(idx, 1)); % First plot
@@ -142,10 +144,63 @@ function setMovementOnset(fig)
     % Update vibration onset
     data.mv_index(data.index) = idx;
 
+    % Create a popup with two tickboxes
+    data.mv_fing(data.index) = createPopup(data.mv_fing(data.index));
+
     % Update plot markers
     set(data.plot1mv, 'XData', data.t(idx), 'YData', data.signal(idx, 1)); % First plot
     set(data.plot2mv, 'XData', data.t(idx), 'YData', data.signal(idx, 2)); % Second plot
 
     % Save updated data
     guidata(fig, data);
+end
+
+function fing = createPopup(fing)
+    finger = 'NONE';
+    
+    if fing == 1
+        finger = 'FDI';
+    end
+    if fing == 2
+        finger = 'ADM';
+    end
+
+    popup = figure('Name', 'Assign finger', 'NumberTitle', 'off', 'Position', [500, 500, 300, 150]);
+
+    % Output Text (on top)
+    output_text = sprintf('Script found finger: %s', finger);
+    uicontrol('Parent', popup, 'Style', 'text', ...
+            'String', output_text, ...
+            'Units', 'normalized', 'Position', [0.1, 0.8, 0.8, 0.15], ...
+            'HorizontalAlignment', 'left', 'FontWeight', 'bold'); % Ensures text alignment and bold font
+
+    % FDI Checkbox (below the text)
+    uicontrol('Parent', popup, 'Style', 'text', 'String', 'fdi', ...
+            'Units', 'normalized', 'Position', [0.3, 0.6, 0.3, 0.1]);
+    fdiCheckbox = uicontrol('Parent', popup, 'Style', 'checkbox', ...
+            'Units', 'normalized', 'Position', [0.1, 0.6, 0.2, 0.1]);
+
+    % ADM Checkbox (below FDI checkbox)
+    uicontrol('Parent', popup, 'Style', 'text', 'String', 'adm', ...
+            'Units', 'normalized', 'Position', [0.3, 0.4, 0.3, 0.1]);
+    admCheckbox = uicontrol('Parent', popup, 'Style', 'checkbox', ...
+            'Units', 'normalized', 'Position', [0.1, 0.4, 0.2, 0.1]);
+
+    % OK Button (at the bottom)
+    uicontrol('Parent', popup, 'Style', 'pushbutton', 'String', 'OK', ...
+            'Units', 'normalized', 'Position', [0.4, 0.1, 0.2, 0.15], ...
+            'Callback', 'uiresume(gcbf)');
+
+    uiwait(popup);
+    fdiConfirmed = get(fdiCheckbox, 'Value');
+    admConfirmed = get(admCheckbox, 'Value');
+    close(popup);
+
+    % Update data based on user confirmation
+    if fdiConfirmed
+        fing = 1;
+    end
+    if admConfirmed
+        fing = 2;
+    end
 end

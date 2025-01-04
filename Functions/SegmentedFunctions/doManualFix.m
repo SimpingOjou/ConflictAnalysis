@@ -59,8 +59,18 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
             end
             data.plot1vb = plot(NaN, NaN, '*', 'LineWidth', 1.5); % Placeholder for vibration onset
             data.plot1mv = plot(NaN, NaN, '*', 'LineWidth', 1.5); % Placeholder for movement onset
-            title('FDI');
-            legend('Signal', 'Vibration', 'Movement', 'Location', 'south', 'Orientation', 'horizontal');
+            
+            vb = '/';
+            if data.vb_fing(i) == 1
+                vb = 'Vibration';
+            end
+            mv = '/';
+            if data.mv_fing(i) == 1
+                mv = 'Movement';
+            end
+            title_text = sprintf('FDI - %s - %s', vb, mv);
+            title(title_text);
+            legend('Signal', 'Vibration', 'Movement', 'Location', 'north', 'Orientation', 'horizontal');
             xlabel('Time (s)');
             grid on;
             hold off;
@@ -76,8 +86,18 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
             end
             data.plot2vb = plot(NaN, NaN, '*', 'LineWidth', 1.5); % Placeholder for vibration onset
             data.plot2mv = plot(NaN, NaN, '*', 'LineWidth', 1.5); % Placeholder for movement onset
-            title('ADM');
-            legend('Signal', 'Vibration', 'Movement', 'Location', 'south', 'Orientation', 'horizontal');
+
+            vb = '/';
+            if data.vb_fing(i) == 2
+                vb = 'Vibration';
+            end
+            mv = '/';
+            if data.mv_fing(i) == 2
+                mv = 'Movement';
+            end
+            title_text = sprintf('ADM - %s - %s', vb, mv);
+            title(title_text);
+            legend('Signal', 'Vibration', 'Movement', 'Location', 'north', 'Orientation', 'horizontal');
             grid on;
             hold off;
 

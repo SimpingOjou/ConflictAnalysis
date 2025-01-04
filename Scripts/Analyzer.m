@@ -11,9 +11,8 @@ parameters;
 doSegmentedDetection;
 
 % Fix not likely data with GUI
-% normalized_signal = getNormalizedSignal(signal);
-normalized_signal = [signal(:,1), signal(:,4)]; % TO CHANGE
-[test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_type, vb_index, mv_index, vb_fing, mv_fing, segmentation_points_index, t, normalized_signal);
+signal_magnitude = [getMagnitude(signal(:,1:3), sampling), getMagnitude(signal(:,4:6), sampling)];
+[test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_type, vb_index, mv_index, vb_fing, mv_fing, segmentation_points_index, t, signal_magnitude);
 
 % Get RT data
 % doRTComparison;

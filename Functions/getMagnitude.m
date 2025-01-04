@@ -1,5 +1,5 @@
 % Function to get the magnitude of the signal between the 3 channels
-function [output_signal] = getNormalizedSignal(signal)
+function [output_signal] = getMagnitude(signal)
     % Filter the signal
     cutoff_low = 1; 
     cutoff_high = 300; 

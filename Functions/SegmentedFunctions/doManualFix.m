@@ -106,13 +106,13 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
             guidata(fig, data);
 
             uicontrol('Parent', fig, 'Style', 'pushbutton', ...
+                'String', 'Delete', 'Units', 'normalized',...
+                'Position', [0.8 0.95 0.1 0.05], ...
+                'Callback', @(src, event) deleteRun(fig));
+            uicontrol('Parent', fig, 'Style', 'pushbutton', ...
                 'String', 'Next', 'Units', 'normalized',...
                 'Position', [0.8 0.01 0.1 0.05], ...
                 'Callback', 'uiresume(gcbf)');
-            uicontrol('Parent', fig, 'Style', 'pushbutton', ...
-                'String', 'Delete', 'Units', 'normalized',...
-                'Position', [0.1 0.01 0.3 0.05], ...
-                'Callback', @(src, event) deleteRun(fig));
             uicontrol('Parent', fig, 'Style', 'togglebutton', ...
                 'String', 'Select vibration onset', 'Units', 'normalized',...
                 'Position', [0.1 0.01 0.3 0.05], ...
@@ -121,19 +121,23 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
                 'String', 'Select movement onset', 'Units', 'normalized',...
                 'Position', [0.4 0.01 0.3 0.05], ...
                 'Callback', @(src, event) setMovementOnset(fig));
+
             uiwait(fig);
             data = guidata(fig); % Retrieve updated data after GUI
-            close(fig);
-
+            
             vb_index(i) = data.vb_index(i);
             mv_index(i) = data.mv_index(i);
             test_type(i) = updateTestType(data);
+
+            close(fig);
+
+            % Strange error @ doSegmentedRTComparison   
         end
     end
 end
 
 function [test_type] = updateTestType(data)
-    test_type = -1;
+    test_type = data.test_type;
     % Update test type based on the selected onsets
     if data.vb_fing(data.index) == 1 && data.mv_fing(data.index) == 2
         test_type = 1;
@@ -147,6 +151,9 @@ function [test_type] = updateTestType(data)
     if data.vb_fing(data.index) == 2 && data.mv_fing(data.index) == 2
         test_type = 4;
     end
+    if data.vb_fing(data.index) == -1 || data.mv_fing(data.index) == -1
+        test_type = -1;
+    end
 end
 
 function deleteRun(fig)
@@ -154,17 +161,13 @@ function deleteRun(fig)
     data = guidata(fig);
 
     % Update vibration onset
-    data.vb_index(data.index) = -1;
-    data.mv_index(data.index) = -1;
-
-    % Update plot markers
-    set(data.plot1vb, 'XData', NaN, 'YData', NaN); % First plot
-    set(data.plot2vb, 'XData', NaN, 'YData', NaN); % Second plot
-    set(data.plot1mv, 'XData', NaN, 'YData', NaN); % First plot
-    set(data.plot2mv, 'XData', NaN, 'YData', NaN); % Second plot
+    data.vb_fing(data.index) = -1;
+    data.mv_fing(data.index) = -1;
 
     % Save updated data
     guidata(fig, data);
+
+    uiresume(fig);
 end
 
 function setVibrationOnset(fig)
@@ -235,13 +238,13 @@ function fing = createPopup(fing)
             'HorizontalAlignment', 'left', 'FontWeight', 'bold'); % Ensures text alignment and bold font
 
     % FDI Checkbox (below the text)
-    uicontrol('Parent', popup, 'Style', 'text', 'String', 'fdi', ...
+    uicontrol('Parent', popup, 'Style', 'text', 'String', 'FDI', ...
             'Units', 'normalized', 'Position', [0.3, 0.6, 0.3, 0.1]);
     fdiCheckbox = uicontrol('Parent', popup, 'Style', 'checkbox', ...
             'Units', 'normalized', 'Position', [0.1, 0.6, 0.2, 0.1]);
 
     % ADM Checkbox (below FDI checkbox)
-    uicontrol('Parent', popup, 'Style', 'text', 'String', 'adm', ...
+    uicontrol('Parent', popup, 'Style', 'text', 'String', 'ADM', ...
             'Units', 'normalized', 'Position', [0.3, 0.4, 0.3, 0.1]);
     admCheckbox = uicontrol('Parent', popup, 'Style', 'checkbox', ...
             'Units', 'normalized', 'Position', [0.1, 0.4, 0.2, 0.1]);

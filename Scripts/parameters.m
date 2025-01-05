@@ -1,5 +1,5 @@
 % Load accelerometer data
-accelerometer = load("acc_run1.mat");
+accelerometer = load("acc_run2.mat");
 sampling = accelerometer.samples_per_second;
 cell_signal = accelerometer.channels;
 data_length = length(cell_signal{1}.data);
@@ -18,14 +18,14 @@ trial_length = 2; % Length of each trial in seconds
 segmentation_points = 0:trial_length:t(end)-2;
 
 % Load box data
-box_data = load('1330_1_2021_Jul_13_1449_V_cued_r_time.mat');
+box_data = load('1330_2_2021_Jul_13_1526_V_cued_r_time.mat');
 box_presstime = box_data.presstime;
 box_triallist = box_data.triallist;
 box_null_value = 99; % Value used in the box data to indicate no response
 box_presstime(box_presstime ~= box_null_value) = box_presstime(box_presstime ~= box_null_value) * 1000 + 200;
 box_presstime = round(box_presstime); % Round to the nearest integer
 
-output_filename = strcat("1330_1_2021_Jul_13_1449", ".mat");
+output_filename = strcat("1330_1_2021_Jul_13_1526", ".mat");
 clear("accelerometer", "box_data");
 
 %% Parameters for tuning of the analysis

@@ -22,7 +22,7 @@ fprintf('-------------------------------------------------------------------');
 % RT comparison with box data
 mv_index(total_trials == 0) = -1; % remove incorrect guesses
 vb_index(total_trials == 0) = -1;
-rt_acc_index = round(mv_index(mv_index ~= -1) - vb_index(vb_index ~= -1)); % ms
+rt_acc_index = abs(round(mv_index(mv_index ~= -1) - vb_index(vb_index ~= -1))); % ms
 rt_acc = t(rt_acc_index) * 1000;
 
 fprintf('\nAverage rt | Accelerometer: %f ms | Box: %f ms', mean(rt_acc), mean(box_presstime(box_presstime ~= box_null_value)));

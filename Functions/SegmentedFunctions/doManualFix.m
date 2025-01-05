@@ -22,6 +22,9 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_ty
                 show_GUI = 1;
             end
         end
+        if current_vb_index > current_mv_index
+            show_GUI = 1;
+        end
 
         if show_GUI
             % Create a GUI window showing the signal during the current segment

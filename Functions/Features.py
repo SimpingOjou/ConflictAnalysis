@@ -1,5 +1,8 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import csv
+
+plt.rcParams['figure.figsize'] = [10, 8]
 
 class Features():
 
@@ -37,6 +40,7 @@ class Features():
                 self.single_run_features[subject][run]['std'] = np.std(rt_acc)
                 self.single_run_features[subject][run]['min'] = np.min(rt_acc)
                 self.single_run_features[subject][run]['max'] = np.max(rt_acc)
+                self.single_run_features[subject][run]['rt_acc'] = rt_acc
 
     def print_single_run_features(self):
         for subject in self.single_run_features:
@@ -44,6 +48,8 @@ class Features():
             for run in self.single_run_features[subject]:
                 print(f'\tRun {run}:')
                 for feature in self.single_run_features[subject][run]:
+                    if feature == 'rt_acc':
+                        continue
                     print(f'\t\t{feature}: {self.single_run_features[subject][run][feature]:.6g} ms')
 
     def calculate_single_run_features_by_type(self):
@@ -80,6 +86,7 @@ class Features():
                     self.single_run_features_by_type[subject][run][type]['std'] = np.std(rt_by_type[type])
                     self.single_run_features_by_type[subject][run][type]['min'] = np.min(rt_by_type[type])
                     self.single_run_features_by_type[subject][run][type]['max'] = np.max(rt_by_type[type])
+                    self.single_run_features_by_type[subject][run][type]['rt_acc'] = rt_by_type[type]
 
     def print_single_run_features_by_type(self):
         for subject in self.single_run_features_by_type:
@@ -89,6 +96,8 @@ class Features():
                 for test_type in self.single_run_features_by_type[subject][run]:
                     print(f'\t\tTest type {test_type}:')
                     for feature in self.single_run_features_by_type[subject][run][test_type]:
+                        if feature == 'rt_acc':
+                            continue
                         print(f'\t\t\t{feature}: {self.single_run_features_by_type[subject][run][test_type][feature]:.6g} ms')
 
     def calculate_subject_features(self):
@@ -114,11 +123,14 @@ class Features():
             self.subject_features[subject]['std'] = np.std(rt)
             self.subject_features[subject]['min'] = np.min(rt)
             self.subject_features[subject]['max'] = np.max(rt)
+            self.subject_features[subject]['rt_acc'] = rt
 
     def print_subject_features(self):
         for subject in self.subject_features:
             print(f'Subject: {subject}')
             for feature in self.subject_features[subject]:
+                if feature == 'rt_acc':
+                    continue
                 print(f'\t{feature}: {self.subject_features[subject][feature]:.6g} ms')
 
     def calculate_subject_features_by_type(self):
@@ -156,6 +168,7 @@ class Features():
                 self.subject_features_by_type[subject][i]['std'] = np.std(rt_by_type[i])
                 self.subject_features_by_type[subject][i]['min'] = np.min(rt_by_type[i])
                 self.subject_features_by_type[subject][i]['max'] = np.max(rt_by_type[i])
+                self.subject_features_by_type[subject][i]['rt_acc'] = rt_by_type[i]
 
     def print_subject_features_by_type(self):
         for subject in self.subject_features_by_type:
@@ -163,6 +176,8 @@ class Features():
             for test_type in self.subject_features_by_type[subject]:
                 print(f'\tTest type {test_type}:')
                 for feature in self.subject_features_by_type[subject][test_type]:
+                    if feature == 'rt_acc':
+                        continue
                     print(f'\t\t{feature}: {self.subject_features_by_type[subject][test_type][feature]:.6g} ms')
 
     def calculate_overall_features(self):
@@ -184,9 +199,12 @@ class Features():
         self.overall_features['std'] = np.std(rt)
         self.overall_features['min'] = np.min(rt)
         self.overall_features['max'] = np.max(rt)
+        self.overall_features['rt_acc'] = rt
 
     def print_overall_features(self):
         for feature in self.overall_features:
+            if feature == 'rt_acc':
+                continue
             print(f'{feature}: {self.overall_features[feature]:.6g} ms')
         print(' \n')
 
@@ -221,11 +239,14 @@ class Features():
             self.overall_features_by_type[i]['std'] = np.std(rt_by_type[i])
             self.overall_features_by_type[i]['min'] = np.min(rt_by_type[i])
             self.overall_features_by_type[i]['max'] = np.max(rt_by_type[i])
+            self.overall_features_by_type[i]['rt_acc'] = rt_by_type[i]
 
     def print_overall_features_by_type(self):
         for test_type in self.overall_features_by_type:
             print(f'Test type {test_type}:')
             for feature in self.overall_features_by_type[test_type]:
+                if feature == 'rt_acc':
+                    continue
                 print(f'\t{feature}: {self.overall_features_by_type[test_type][feature]:.6g} ms')
 
     def save_single_run_features(self, folder:str = './Export/'):
@@ -292,3 +313,36 @@ class Features():
         self.save_subject_features_by_type(folder)
         self.save_overall_features(folder)
         self.save_overall_features_by_type(folder)
+
+class FeaturePlotter():
+    def __init__(self, features:Features):
+        self.features = features
+
+    def plot_single_run_features_by_type(self):
+        feature = self.features.single_run_features_by_type
+        
+        plt.figure()
+        num_types = 4
+        fig, axs = plt.subplots(2, 2)
+
+        first_subject = next(iter(feature))
+        first_run = next(iter(feature[first_subject]))
+        test_types = feature[first_subject][first_run]
+
+        for i, test_type in enumerate(test_types):
+            print("No features to plot.")
+            return
+
+        for i, test_type in enumerate(feature[next(iter(feature))][next(iter(feature[next(iter(feature))]))]):
+            ax = axs[i] if num_types > 1 else axs
+            for subject in feature:
+                for run in feature[subject]:
+                    rt_acc = feature[subject][run][test_type]['rt_acc']
+                    ax.plot(rt_acc, label=f'Subject {subject}, Run {run}')
+            ax.set_title(f'Test Type {test_type}')
+            ax.set_xlabel('Index')
+            ax.set_ylabel('RT (ms)')
+            ax.legend()
+
+        plt.tight_layout()
+        plt.show()

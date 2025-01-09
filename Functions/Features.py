@@ -319,30 +319,100 @@ class FeaturePlotter():
         self.features = features
 
     def plot_single_run_features_by_type(self):
-        feature = self.features.single_run_features_by_type
+        features = self.features.single_run_features_by_type
         
+        for subject in features:
+            for run in features[subject]:
+                print(f'Subject: {subject}, Run: {run}')
+                plt.figure()
+
+                fig, axs = plt.subplots(2, 2)
+
+                for i, ax in enumerate(axs.flatten()):
+                    test_type = i + 1
+                    if test_type not in features[subject][run]:
+                        continue
+                    rt_acc = features[subject][run][test_type]['rt_acc']
+                    x_axis = np.arange(len(rt_acc))
+
+                    # Perform linear regression
+                    slope, intercept = np.polyfit(x_axis, rt_acc, 1)
+                    regression_line = slope * x_axis + intercept
+
+                    ax.scatter(x_axis, rt_acc, label='Data', marker = 's', s=10)
+                    ax.plot(x_axis, regression_line, color = 'red', linestyle = '--', label = 'Linear regression')
+                    ax.plot(x_axis, np.ones_like(x_axis) * np.mean(rt_acc), color = 'orange', linestyle = '--', label = 'Mean')
+
+                    ax.set_title(f'Test Type {test_type}')
+                    ax.set_xlabel('Data #')
+                    ax.set_ylabel('RT (ms)')
+                    ax.grid()
+                    ax.legend()
+                
+                plt.tight_layout()
+                plt.show()
+
+    def plot_subject_features_by_type(self):
+        features = self.features.subject_features_by_type
+        
+        for subject in features:
+            print(f'Subject: {subject}')
+            plt.figure()
+
+            fig, axs = plt.subplots(2, 2)
+
+            for i, ax in enumerate(axs.flatten()):
+                test_type = i + 1
+                if test_type not in features[subject]:
+                    continue
+                rt_acc = features[subject][test_type]['rt_acc']
+                x_axis = np.arange(len(rt_acc))
+
+                # Perform linear regression
+                slope, intercept = np.polyfit(x_axis, rt_acc, 1)
+                regression_line = slope * x_axis + intercept
+
+                ax.scatter(x_axis, rt_acc, label='Data', marker = 's', s=10)
+                ax.plot(x_axis, regression_line, color = 'red', linestyle = '--', label = 'Linear regression')
+                ax.plot(x_axis, np.ones_like(x_axis) * np.mean(rt_acc), color = 'orange', linestyle = '--', label = 'Mean')
+
+                ax.set_title(f'Test Type {test_type}')
+                ax.set_xlabel('Data #')
+                ax.set_ylabel('RT (ms)')
+                ax.grid()
+                ax.legend()
+            
+            plt.tight_layout()
+            plt.show()
+
+    def plot_overall_features_by_type(self):
+        features = self.features.overall_features_by_type
+        
+        print('Overall features by type')
         plt.figure()
-        num_types = 4
+
         fig, axs = plt.subplots(2, 2)
 
-        first_subject = next(iter(feature))
-        first_run = next(iter(feature[first_subject]))
-        test_types = feature[first_subject][first_run]
+        for i, ax in enumerate(axs.flatten()):
+            test_type = i + 1
+            if test_type not in features:
+                continue
+            rt_acc = features[test_type]['rt_acc']
+            x_axis = np.arange(len(rt_acc))
 
-        for i, test_type in enumerate(test_types):
-            print("No features to plot.")
-            return
+            # Perform linear regression
+            slope, intercept = np.polyfit(x_axis, rt_acc, 1)
+            regression_line = slope * x_axis + intercept
 
-        for i, test_type in enumerate(feature[next(iter(feature))][next(iter(feature[next(iter(feature))]))]):
-            ax = axs[i] if num_types > 1 else axs
-            for subject in feature:
-                for run in feature[subject]:
-                    rt_acc = feature[subject][run][test_type]['rt_acc']
-                    ax.plot(rt_acc, label=f'Subject {subject}, Run {run}')
+            ax.scatter(x_axis, rt_acc, label='Data', marker = 's', s=10)
+            ax.plot(x_axis, regression_line, color = 'red', linestyle = '--', label = 'Linear regression')
+            ax.plot(x_axis, np.ones_like(x_axis) * np.mean(rt_acc), color = 'orange', linestyle = '--', label = 'Mean')
+
             ax.set_title(f'Test Type {test_type}')
-            ax.set_xlabel('Index')
+            ax.set_xlabel('Data #')
             ax.set_ylabel('RT (ms)')
+            ax.grid()
             ax.legend()
-
+        
         plt.tight_layout()
         plt.show()

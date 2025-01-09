@@ -1,8 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
+from scipy.stats import shapiro
 
 plt.rcParams['figure.figsize'] = [10, 8]
+
+def _check_normality(data: np.ndarray) -> bool:
+    _, p_value = shapiro(data)
+    return p_value > 0.05
 
 class Features():
 
@@ -16,7 +21,7 @@ class Features():
         self.subject_features_by_type:dict[str, dict[int, dict[str, float]]] = dict() # subject > test_type > feature > value
         self.overall_features:dict[str, float] = dict() # feature > value
         self.overall_features_by_type:dict[int, dict[str, float]] = dict() # test_type > feature > value
-        
+
         self.dataset = dataset
         self.only_physiological = only_physiological
 
@@ -88,6 +93,11 @@ class Features():
                     self.single_run_features_by_type[subject][run][type]['max'] = np.max(rt_by_type[type])
                     self.single_run_features_by_type[subject][run][type]['rt_acc'] = rt_by_type[type]
 
+                    if _check_normality(rt_by_type[type]):
+                        self.single_run_features_by_type[subject][run][type]['normality'] = 'Yes'
+                    else:
+                        self.single_run_features_by_type[subject][run][type]['normality'] = 'No'
+
     def print_single_run_features_by_type(self):
         for subject in self.single_run_features_by_type:
             print(f'Subject: {subject}')
@@ -97,6 +107,9 @@ class Features():
                     print(f'\t\tTest type {test_type}:')
                     for feature in self.single_run_features_by_type[subject][run][test_type]:
                         if feature == 'rt_acc':
+                            continue
+                        if feature == 'normality':
+                            print(f'\t\t\t{feature}: {self.single_run_features_by_type[subject][run][test_type][feature]}')
                             continue
                         print(f'\t\t\t{feature}: {self.single_run_features_by_type[subject][run][test_type][feature]:.6g} ms')
 
@@ -170,6 +183,11 @@ class Features():
                 self.subject_features_by_type[subject][i]['max'] = np.max(rt_by_type[i])
                 self.subject_features_by_type[subject][i]['rt_acc'] = rt_by_type[i]
 
+                if _check_normality(rt_by_type[i]):
+                    self.subject_features_by_type[subject][i]['normality'] = 'Yes'
+                else:
+                    self.subject_features_by_type[subject][i]['normality'] = 'No'
+
     def print_subject_features_by_type(self):
         for subject in self.subject_features_by_type:
             print(f'Subject: {subject}')
@@ -177,6 +195,9 @@ class Features():
                 print(f'\tTest type {test_type}:')
                 for feature in self.subject_features_by_type[subject][test_type]:
                     if feature == 'rt_acc':
+                        continue
+                    if feature == 'normality':
+                        print(f'\t\t{feature}: {self.subject_features_by_type[subject][test_type][feature]}')
                         continue
                     print(f'\t\t{feature}: {self.subject_features_by_type[subject][test_type][feature]:.6g} ms')
 
@@ -241,12 +262,20 @@ class Features():
             self.overall_features_by_type[i]['max'] = np.max(rt_by_type[i])
             self.overall_features_by_type[i]['rt_acc'] = rt_by_type[i]
 
+            if _check_normality(rt_by_type[i]):
+                self.overall_features_by_type[i]['normality'] = 'Yes'
+            else:
+                self.overall_features_by_type[i]['normality'] = 'No'
+
     def print_overall_features_by_type(self):
         for test_type in self.overall_features_by_type:
             print(f'Test type {test_type}:')
             for feature in self.overall_features_by_type[test_type]:
                 if feature == 'rt_acc':
                     continue
+                if feature == 'normality':
+                        print(f'\t{feature}: {self.overall_features_by_type[test_type][feature]}')
+                        continue
                 print(f'\t{feature}: {self.overall_features_by_type[test_type][feature]:.6g} ms')
 
     def save_single_run_features(self, folder:str = './Export/'):
@@ -264,11 +293,12 @@ class Features():
         path = folder + 'single_run_features_by_type.csv'
         with open(path, 'w', newline='', encoding='utf-8-sig') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['Subject', 'Run', 'Test Type', 'Mean', 'Median', 'Standard Deviation', 'Minimum', 'Maximum'])
+            writer.writerow(['Subject', 'Run', 'Test Type', 'Mean', 'Median', 'Standard Deviation', 'Minimum', 'Maximum', 'Normality'])
             for subject in self.single_run_features_by_type:
                 for run in self.single_run_features_by_type[subject]:
                     for test_type in self.single_run_features_by_type[subject][run]:
-                        writer.writerow([subject, run, test_type, self.single_run_features_by_type[subject][run][test_type]['mean'], self.single_run_features_by_type[subject][run][test_type]['median'], self.single_run_features_by_type[subject][run][test_type]['std'], self.single_run_features_by_type[subject][run][test_type]['min'], self.single_run_features_by_type[subject][run][test_type]['max']])
+                        writer.writerow([subject, run, test_type, self.single_run_features_by_type[subject][run][test_type]['mean'], self.single_run_features_by_type[subject][run][test_type]['median'], self.single_run_features_by_type[subject][run][test_type]['std'], self.single_run_features_by_type[subject][run][test_type]['min'], self.single_run_features_by_type[subject][run][test_type]['max'], self.single_run_features_by_type[subject][run][test_type]['normality']])
+        # TODO: Add ratio and distribution feature in csv
     
     def save_subject_features(self, folder:str = './Export/'):
         # Save subject features
@@ -284,10 +314,10 @@ class Features():
         path = folder + 'subject_features_by_type.csv'
         with open(path, 'w', newline='', encoding='utf-8-sig') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['Subject', 'Test Type', 'Mean', 'Median', 'Standard Deviation', 'Minimum', 'Maximum'])
+            writer.writerow(['Subject', 'Test Type', 'Mean', 'Median', 'Standard Deviation', 'Minimum', 'Maximum', 'Normality'])
             for subject in self.subject_features_by_type:
                 for test_type in self.subject_features_by_type[subject]:
-                    writer.writerow([subject, test_type, self.subject_features_by_type[subject][test_type]['mean'], self.subject_features_by_type[subject][test_type]['median'], self.subject_features_by_type[subject][test_type]['std'], self.subject_features_by_type[subject][test_type]['min'], self.subject_features_by_type[subject][test_type]['max']])
+                    writer.writerow([subject, test_type, self.subject_features_by_type[subject][test_type]['mean'], self.subject_features_by_type[subject][test_type]['median'], self.subject_features_by_type[subject][test_type]['std'], self.subject_features_by_type[subject][test_type]['min'], self.subject_features_by_type[subject][test_type]['max'], self.subject_features_by_type[subject][test_type]['normality']])
 
     def save_overall_features(self, folder:str = './Export/'):
         # Save overall features
@@ -302,9 +332,9 @@ class Features():
         path = folder + 'overall_features_by_type.csv'
         with open(path, 'w', newline='', encoding='utf-8-sig') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['Test Type', 'Mean', 'Median', 'Standard Deviation', 'Minimum', 'Maximum'])
+            writer.writerow(['Test Type', 'Mean', 'Median', 'Standard Deviation', 'Minimum', 'Maximum', 'Normality'])
             for test_type in self.overall_features_by_type:
-                writer.writerow([test_type, self.overall_features_by_type[test_type]['mean'], self.overall_features_by_type[test_type]['median'], self.overall_features_by_type[test_type]['std'], self.overall_features_by_type[test_type]['min'], self.overall_features_by_type[test_type]['max']])
+                writer.writerow([test_type, self.overall_features_by_type[test_type]['mean'], self.overall_features_by_type[test_type]['median'], self.overall_features_by_type[test_type]['std'], self.overall_features_by_type[test_type]['min'], self.overall_features_by_type[test_type]['max'], self.overall_features_by_type[test_type]['normality']])
 
     def save_all_to_csv(self, folder:str = './Export/'):
         self.save_single_run_features(folder)

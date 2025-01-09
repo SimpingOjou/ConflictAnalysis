@@ -2,7 +2,11 @@ import numpy as np
 import csv
 
 class Features():
-    def __init__(self, dataset:dict[str, list[dict]]):
+
+    upper_limit = 700
+    lower_limit = 200
+
+    def __init__(self, dataset:dict[str, list[dict]], only_physiological:bool = False):
         self.single_run_features:dict[str, dict[int, dict[str, float]]] = dict() # subject > run > feature > value
         self.single_run_features_by_type:dict[str, dict[int, dict[str, float]]] = dict() # subject > run > test_type > feature > value
         self.subject_features:dict[str, dict[str, float]] = dict() # subject > feature > value
@@ -11,6 +15,7 @@ class Features():
         self.overall_features_by_type:dict[int, dict[str, float]] = dict() # test_type > feature > value
         
         self.dataset = dataset
+        self.only_physiological = only_physiological
 
     def calculate_single_run_features(self):
         # For each run, get all the RTs and features
@@ -24,6 +29,8 @@ class Features():
 
                 # Simplify the variable names
                 rt_acc = self.dataset[subject][run]['rt_acc'].flatten()
+                if self.only_physiological:
+                    rt_acc = rt_acc[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
 
                 self.single_run_features[subject][run]['mean'] = np.mean(rt_acc)
                 self.single_run_features[subject][run]['median'] = np.median(rt_acc)
@@ -51,6 +58,9 @@ class Features():
                 acc_test_type = self.dataset[subject][run]['acc_test_type'].flatten()
                 test_type = self.dataset[subject][run]['test_type'].flatten()
                 rt_acc = self.dataset[subject][run]['rt_acc'].flatten()
+                if self.only_physiological:
+                    acc_test_type = acc_test_type[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
+                    rt_acc = rt_acc[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
 
                 # Calculate statistical features by test type for each run
                 if run not in self.single_run_features_by_type[subject]:
@@ -93,6 +103,8 @@ class Features():
             for run in self.dataset[subject]:
                 # Simplify the variable names
                 rt_acc = self.dataset[subject][run]['rt_acc'].flatten()
+                if self.only_physiological:
+                    rt_acc = rt_acc[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
 
                 rt = np.concatenate((rt, rt_acc), axis=None)
 
@@ -123,6 +135,9 @@ class Features():
                 acc_test_type = self.dataset[subject][run]['acc_test_type'].flatten()
                 test_type = self.dataset[subject][run]['test_type'].flatten()
                 rt_acc = self.dataset[subject][run]['rt_acc'].flatten()
+                if self.only_physiological:
+                    acc_test_type = acc_test_type[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
+                    rt_acc = rt_acc[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
 
                 # Loop through each test type and calculate the average reaction times
                 for i in range(1, len(np.unique(test_type))):
@@ -158,6 +173,8 @@ class Features():
             for run in self.dataset[subject]:
                 # Simplify the variable names
                 rt_acc = self.dataset[subject][run]['rt_acc'].flatten()
+                if self.only_physiological:
+                    rt_acc = rt_acc[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
 
                 rt = np.concatenate((rt, rt_acc), axis=None)
 
@@ -183,6 +200,9 @@ class Features():
                 acc_test_type = self.dataset[subject][run]['acc_test_type'].flatten()
                 test_type = self.dataset[subject][run]['test_type'].flatten()
                 rt_acc = self.dataset[subject][run]['rt_acc'].flatten()
+                if self.only_physiological:
+                    acc_test_type = acc_test_type[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
+                    rt_acc = rt_acc[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
 
                 # Loop through each test type and calculate the average reaction times
                 for i in range(1, len(np.unique(test_type))):
@@ -266,9 +286,9 @@ class Features():
                 writer.writerow([test_type, self.overall_features_by_type[test_type]['mean'], self.overall_features_by_type[test_type]['median'], self.overall_features_by_type[test_type]['std'], self.overall_features_by_type[test_type]['min'], self.overall_features_by_type[test_type]['max']])
 
     def save_all_to_csv(self, folder:str = './Export/'):
-        self.save_single_run_features(self, folder)
-        self.save_single_run_features_by_type(self, folder)
-        self.save_subject_features(self, folder)
-        self.save_subject_features_by_type(self, folder)
-        self.save_overall_features(self, folder)
-        self.save_overall_features_by_type(self, folder)
+        self.save_single_run_features(folder)
+        self.save_single_run_features_by_type(folder)
+        self.save_subject_features(folder)
+        self.save_subject_features_by_type(folder)
+        self.save_overall_features(folder)
+        self.save_overall_features_by_type(folder)

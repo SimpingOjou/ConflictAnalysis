@@ -21,6 +21,10 @@ class Features():
         self.subject_features_by_type:dict[str, dict[int, dict[str, float]]] = dict() # subject > test_type > feature > value
         self.overall_features:dict[str, float] = dict() # feature > value
         self.overall_features_by_type:dict[int, dict[str, float]] = dict() # test_type > feature > value
+        
+        self.run_hetero_homo_ratio:dict[str, dict[str, float]] = dict() # subject > run > value
+        self.subject_hetero_homo_ratio:dict[str, float] = dict() # subject > value
+        self.overall_hetero_homo_ratio:float = 0
 
         self.dataset = dataset
         self.only_physiological = only_physiological
@@ -61,10 +65,18 @@ class Features():
         # For each run, get all the RTs and features
         for subject in self.dataset:
             if subject not in self.single_run_features_by_type:
-                    self.single_run_features_by_type[subject] = dict()
+                self.single_run_features_by_type[subject] = dict()
+            if subject not in self.run_hetero_homo_ratio:
+                self.run_hetero_homo_ratio[subject] = dict()
             rt_by_type:dict[int, np.ndarray] = dict()
 
             for run in self.dataset[subject]:
+                # Calculate statistical features by test type for each run
+                if run not in self.single_run_features_by_type[subject]:
+                    self.single_run_features_by_type[subject][run] = dict()
+                if run not in self.run_hetero_homo_ratio[subject]:
+                    self.run_hetero_homo_ratio[subject][run] = dict()
+
                 # Simplify the variable names
                 acc_test_type = self.dataset[subject][run]['acc_test_type'].flatten()
                 test_type = self.dataset[subject][run]['test_type'].flatten()
@@ -72,10 +84,6 @@ class Features():
                 if self.only_physiological:
                     acc_test_type = acc_test_type[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
                     rt_acc = rt_acc[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
-
-                # Calculate statistical features by test type for each run
-                if run not in self.single_run_features_by_type[subject]:
-                    self.single_run_features_by_type[subject][run] = dict()
 
                 for type in range(1, len(np.unique(test_type))):
                     if type not in rt_by_type:
@@ -98,6 +106,10 @@ class Features():
                     else:
                         self.single_run_features_by_type[subject][run][type]['normality'] = 'No'
 
+                hetero = rt_acc[np.logical_or(acc_test_type == 1, acc_test_type == 2)]
+                homo = rt_acc[np.logical_or(acc_test_type == 3, acc_test_type == 4)]
+                self.run_hetero_homo_ratio[subject][run] = np.mean(hetero) / np.mean(homo)
+
     def print_single_run_features_by_type(self):
         for subject in self.single_run_features_by_type:
             print(f'Subject: {subject}')
@@ -112,6 +124,7 @@ class Features():
                             print(f'\t\t\t{feature}: {self.single_run_features_by_type[subject][run][test_type][feature]}')
                             continue
                         print(f'\t\t\t{feature}: {self.single_run_features_by_type[subject][run][test_type][feature]:.6g} ms')
+                print(f'\t\tHeterotopic over homotopic ratio: {self.run_hetero_homo_ratio[subject][run]:.6g}')
 
     def calculate_subject_features(self):
         # For each subject, get all the RTs and features
@@ -151,6 +164,8 @@ class Features():
         for subject in self.dataset:
             if subject not in self.subject_features_by_type:
                 self.subject_features_by_type[subject] = dict()
+            if subject not in self.subject_hetero_homo_ratio:
+                self.subject_hetero_homo_ratio[subject] = dict()
 
             rt_by_type:dict[int, np.ndarray] = dict()
 
@@ -188,6 +203,10 @@ class Features():
                 else:
                     self.subject_features_by_type[subject][i]['normality'] = 'No'
 
+            hetero = np.concatenate((rt_by_type[1], rt_by_type[2]), axis=None)
+            homo = np.concatenate((rt_by_type[3], rt_by_type[4]), axis=None)
+            self.subject_hetero_homo_ratio[subject] = np.mean(hetero) / np.mean(homo)
+
     def print_subject_features_by_type(self):
         for subject in self.subject_features_by_type:
             print(f'Subject: {subject}')
@@ -200,6 +219,7 @@ class Features():
                         print(f'\t\t{feature}: {self.subject_features_by_type[subject][test_type][feature]}')
                         continue
                     print(f'\t\t{feature}: {self.subject_features_by_type[subject][test_type][feature]:.6g} ms')
+            print(f'\tHeterotopic over homotopic ratio: {self.subject_hetero_homo_ratio[subject]:.6g}')
 
     def calculate_overall_features(self):
         # Get all the RTs and features
@@ -267,6 +287,10 @@ class Features():
             else:
                 self.overall_features_by_type[i]['normality'] = 'No'
 
+        hetero = np.concatenate((rt_by_type[1], rt_by_type[2]), axis=None)
+        homo = np.concatenate((rt_by_type[3], rt_by_type[4]), axis=None)
+        self.overall_hetero_homo_ratio = np.mean(hetero) / np.mean(homo)
+
     def print_overall_features_by_type(self):
         for test_type in self.overall_features_by_type:
             print(f'Test type {test_type}:')
@@ -277,6 +301,7 @@ class Features():
                         print(f'\t{feature}: {self.overall_features_by_type[test_type][feature]}')
                         continue
                 print(f'\t{feature}: {self.overall_features_by_type[test_type][feature]:.6g} ms')
+        print(f'Heterotopic over homotopic ratio: {self.overall_hetero_homo_ratio:.6g}')
 
     def save_single_run_features(self, folder:str = './Export/'):
         # Save single run features
@@ -298,6 +323,14 @@ class Features():
                 for run in self.single_run_features_by_type[subject]:
                     for test_type in self.single_run_features_by_type[subject][run]:
                         writer.writerow([subject, run, test_type, self.single_run_features_by_type[subject][run][test_type]['mean'], self.single_run_features_by_type[subject][run][test_type]['median'], self.single_run_features_by_type[subject][run][test_type]['std'], self.single_run_features_by_type[subject][run][test_type]['min'], self.single_run_features_by_type[subject][run][test_type]['max'], self.single_run_features_by_type[subject][run][test_type]['normality']])
+
+            writer.writerow([])
+
+            writer.writerow(['Subject', 'Run', 'Heterotopic over homotopic ratio'])
+            for subject in self.single_run_features_by_type:
+                for run in self.single_run_features_by_type[subject]:
+                    writer.writerow([subject, run, self.run_hetero_homo_ratio[subject][run]])
+
         # TODO: Add ratio and distribution feature in csv
     
     def save_subject_features(self, folder:str = './Export/'):
@@ -319,6 +352,12 @@ class Features():
                 for test_type in self.subject_features_by_type[subject]:
                     writer.writerow([subject, test_type, self.subject_features_by_type[subject][test_type]['mean'], self.subject_features_by_type[subject][test_type]['median'], self.subject_features_by_type[subject][test_type]['std'], self.subject_features_by_type[subject][test_type]['min'], self.subject_features_by_type[subject][test_type]['max'], self.subject_features_by_type[subject][test_type]['normality']])
 
+            writer.writerow([])
+            
+            writer.writerow(['Subject', 'Heterotopic over homotopic ratio'])
+            for subject in self.single_run_features_by_type:
+                writer.writerow([subject, self.subject_hetero_homo_ratio[subject]])
+
     def save_overall_features(self, folder:str = './Export/'):
         # Save overall features
         path = folder + 'overall_features.csv'
@@ -335,6 +374,11 @@ class Features():
             writer.writerow(['Test Type', 'Mean', 'Median', 'Standard Deviation', 'Minimum', 'Maximum', 'Normality'])
             for test_type in self.overall_features_by_type:
                 writer.writerow([test_type, self.overall_features_by_type[test_type]['mean'], self.overall_features_by_type[test_type]['median'], self.overall_features_by_type[test_type]['std'], self.overall_features_by_type[test_type]['min'], self.overall_features_by_type[test_type]['max'], self.overall_features_by_type[test_type]['normality']])
+
+            writer.writerow([])
+            
+            writer.writerow(['Heterotopic over homotopic ratio'])
+            writer.writerow([self.overall_hetero_homo_ratio])
 
     def save_all_to_csv(self, folder:str = './Export/'):
         self.save_single_run_features(folder)

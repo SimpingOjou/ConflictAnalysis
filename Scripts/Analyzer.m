@@ -11,11 +11,11 @@ parameters;
 doSegmentedDetection;
 
 % Fix not likely data with GUI
-% normalized_signal = signal;
-% ratio36 = mean(normalized_signal(:,3)) ./ mean(normalized_signal(:,6));
-% normalized_signal(:,3) = normalized_signal(:,3) * ratio36; % Make the signals comparable
-% signal_magnitude = [getMagnitude(signal(:,1:3), sampling), getMagnitude(signal(:,4:6), sampling)];
-% [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_type, vb_index, mv_index, vb_fing, mv_fing, segmentation_points_index, t, signal_magnitude);
+normalized_signal = signal;
+ratio36 = mean(normalized_signal(:,3)) ./ mean(normalized_signal(:,6));
+normalized_signal(:,3) = normalized_signal(:,3) * ratio36; % Make the signals comparable
+signal_magnitude = [getMagnitude(signal(:,1:3), sampling), getMagnitude(signal(:,4:6), sampling)];
+[test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_type, vb_index, mv_index, vb_fing, mv_fing, segmentation_points_index, t, signal_magnitude);
 
 % Get RT data
 % doRTComparison;
@@ -67,9 +67,6 @@ clear("box_trial_list", "cell_signal", "channel_nbr", "cutoff_low_mv",...
 % 1 = FDI vb and ADM mv
 % 2 = ADM vb and FDI mv
 
-% batch and manual gui (visualize runs if they're outliers (do it the physiological way: >700 and <200))
-% output outlier # -> show - 0.1s + 1s on normalized signal
-% try to click GUI (y/n)
 % sequence influences conflict (switch makes slower (look into the run before))
 % program t.c. find onset vb and response -> segment response type -> 20 subj
 
@@ -79,3 +76,8 @@ clear("box_trial_list", "cell_signal", "channel_nbr", "cutoff_low_mv",...
 
 % plot_RT_by_type(rt_acc, acc_test_type, box_presstime, box_triallist, box_null_value);
 
+% figure in python -> file format (csv)
+% almost always ok to use median -> sw test in python too
+% add a guideline for the looks of the GUI
+% analyze reesponse box if wanted
+% do box statistics and compare with acceleration data

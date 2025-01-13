@@ -85,7 +85,7 @@ class Features():
                     acc_test_type = acc_test_type[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
                     rt_acc = rt_acc[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
 
-                for type in range(1, len(np.unique(test_type))):
+                for type in np.sort(np.unique(test_type)):
                     if type not in rt_by_type:
                         rt_by_type[type] = np.array([])
                     if type not in self.single_run_features_by_type[subject][run]:
@@ -101,7 +101,7 @@ class Features():
                     self.single_run_features_by_type[subject][run][type]['max'] = np.max(rt_by_type[type])
                     self.single_run_features_by_type[subject][run][type]['rt_acc'] = rt_by_type[type]
 
-                    if _check_normality(rt_by_type[type]):
+                    if len(rt_by_type[type]) > 3 and _check_normality(rt_by_type[type]):
                         self.single_run_features_by_type[subject][run][type]['normality'] = 'Yes'
                     else:
                         self.single_run_features_by_type[subject][run][type]['normality'] = 'No'
@@ -180,14 +180,14 @@ class Features():
                     rt_acc = rt_acc[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
 
                 # Loop through each test type and calculate the average reaction times
-                for i in range(1, len(np.unique(test_type))):
+                for i in np.sort(np.unique(test_type)):
                     if i not in rt_by_type:
                         rt_by_type[i] = np.array([])
 
                     rt_by_type[i] = np.concatenate((rt_by_type[i], rt_acc[acc_test_type == i]), axis=None)
 
             # Calculate statistical features by test type for each subject
-            for i in range(1, len(np.unique(test_type))):
+            for i in np.sort(np.unique(test_type)):
                 if i not in self.subject_features_by_type[subject]:
                     self.subject_features_by_type[subject][i] = dict()
 
@@ -264,14 +264,14 @@ class Features():
                     rt_acc = rt_acc[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
 
                 # Loop through each test type and calculate the average reaction times
-                for i in range(1, len(np.unique(test_type))):
+                for i in np.sort(np.unique(test_type)):
                     if i not in rt_by_type:
                         rt_by_type[i] = np.array([])
 
                     rt_by_type[i] = np.concatenate((rt_by_type[i], rt_acc[acc_test_type == i]), axis=None)
 
         # Calculate statistical features by test type for all subjects
-        for i in range(1, len(np.unique(test_type))):
+        for i in np.sort(np.unique(test_type)):
             if i not in self.overall_features_by_type:
                 self.overall_features_by_type[i] = dict()
 
@@ -490,3 +490,27 @@ class FeaturePlotter():
         
         plt.tight_layout()
         plt.show()
+
+class FeatureComparator():
+    def __init__(self, feature_1:Features, feature_2:Features, features_to_compare:list[str] = ['mean', 'median', 'std', 'min', 'max']):
+        self.feature_1 = feature_1
+        self.feature_2 = feature_2
+        self.features_to_compare = features_to_compare
+
+        # Get common subjects and runs between the two datasets
+        self.common_subjects = list(set(self.feature_1.dataset.keys()) & set(self.feature_2.dataset.keys()))
+        self.common_runs = dict()
+        for subject in self.common_subjects:
+            self.common_runs[subject] = list(set(self.feature_1.dataset[subject].keys()) & set(self.feature_2.dataset[subject].keys()))
+
+    def compare_single_run_features_by_type(self):
+        for subject in self.common_subjects:
+            print(f'Subject: {subject}')
+            for run in self.common_runs[subject]:
+                print(f'\tRun {run}:')
+                for feature in self.features_to_compare:
+                    if feature not in self.feature_1.single_run_features[subject][run]:
+                        continue
+                    print(f'\t\t{feature}: {self.feature_1.single_run_features[subject][run][feature]:.6g} ms vs {self.feature_2.single_run_features[subject][run][feature]:.6g} ms')
+
+    

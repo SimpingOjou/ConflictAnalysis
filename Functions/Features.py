@@ -512,6 +512,8 @@ class FeatureComparator():
                     if feature not in self.feature_1.single_run_features[subject][run]:
                         continue
                     print(f'\t\t{feature}: {self.feature_1.single_run_features[subject][run][feature]:.6g} (acc) ms vs {self.feature_2.single_run_features[subject][run][feature]:.6g} (box) ms')
+                    if feature == 'mean' or feature == 'median':
+                        print(f'\t\t\tdifference: {self._compute_difference(self.feature_1.single_run_features[subject][run][feature], self.feature_2.single_run_features[subject][run][feature]):.6g} ms, Percentage difference: {self._compute_percentage_difference(self.feature_1.single_run_features[subject][run][feature], self.feature_2.single_run_features[subject][run][feature]):.6g}%')
 
     def compare_subject_features_by_type(self):
         for subject in self.common_subjects:
@@ -520,6 +522,8 @@ class FeatureComparator():
                 if feature not in self.feature_1.subject_features[subject]:
                     continue
                 print(f'\t{feature}: {self.feature_1.subject_features[subject][feature]:.6g} (acc) ms vs {self.feature_2.subject_features[subject][feature]:.6g} (box) ms')
+                if feature == 'mean' or feature == 'median':
+                    print(f'\t\tdifference: {self._compute_difference(self.feature_1.subject_features[subject][feature], self.feature_2.subject_features[subject][feature]):.6g} ms, Percentage difference: {self._compute_percentage_difference(self.feature_1.subject_features[subject][feature], self.feature_2.subject_features[subject][feature]):.6g}%')
 
     def compare_overall_features_by_type(self):
         print('Overall features by type')
@@ -527,3 +531,11 @@ class FeatureComparator():
             if feature not in self.feature_1.overall_features:
                 continue
             print(f'\t{feature}: {self.feature_1.overall_features[feature]:.6g} (acc) ms vs {self.feature_2.overall_features[feature]:.6g} (box) ms')
+            if feature == 'mean' or feature == 'median':
+                print(f'\t\tdifference: {self._compute_difference(self.feature_1.overall_features[feature], self.feature_2.overall_features[feature]):.6g} ms, Percentage difference: {self._compute_percentage_difference(self.feature_1.overall_features[feature], self.feature_2.overall_features[feature]):.6g}%')
+
+    def _compute_difference(self, value_1:float, value_2:float) -> float:
+        return value_1 - value_2
+    
+    def _compute_percentage_difference(self, value_1:float, value_2:float) -> float:
+        return (value_1 - value_2) / value_2 * 100

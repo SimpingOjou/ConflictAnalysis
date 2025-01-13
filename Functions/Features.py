@@ -511,6 +511,19 @@ class FeatureComparator():
                 for feature in self.features_to_compare:
                     if feature not in self.feature_1.single_run_features[subject][run]:
                         continue
-                    print(f'\t\t{feature}: {self.feature_1.single_run_features[subject][run][feature]:.6g} ms vs {self.feature_2.single_run_features[subject][run][feature]:.6g} ms')
+                    print(f'\t\t{feature}: {self.feature_1.single_run_features[subject][run][feature]:.6g} (acc) ms vs {self.feature_2.single_run_features[subject][run][feature]:.6g} (box) ms')
 
-    
+    def compare_subject_features_by_type(self):
+        for subject in self.common_subjects:
+            print(f'Subject: {subject}')
+            for feature in self.features_to_compare:
+                if feature not in self.feature_1.subject_features[subject]:
+                    continue
+                print(f'\t{feature}: {self.feature_1.subject_features[subject][feature]:.6g} (acc) ms vs {self.feature_2.subject_features[subject][feature]:.6g} (box) ms')
+
+    def compare_overall_features_by_type(self):
+        print('Overall features by type')
+        for feature in self.features_to_compare:
+            if feature not in self.feature_1.overall_features:
+                continue
+            print(f'\t{feature}: {self.feature_1.overall_features[feature]:.6g} (acc) ms vs {self.feature_2.overall_features[feature]:.6g} (box) ms')

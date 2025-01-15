@@ -48,7 +48,7 @@ function [test_type, vb_index, mv_index, vb_fing, mv_fing] = ...
             continue;
         end
 
-        % Get the trial type from the box data
+        % Get the trial type from the acceleration data
         if unique_vb(i,fdi_column) ~= -1 && unique_mv(i,adm_column) ~= -1
             test_type(i) = 1;
             vb_index(i) = unique_vb(i,fdi_column);

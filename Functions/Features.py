@@ -7,9 +7,19 @@ import pandas as pd
 
 plt.rcParams['figure.figsize'] = [10, 8]
 
-def _check_normality(data: np.ndarray) -> bool:
+def _check_normality(data: np.ndarray, alpha:float = 0.05) -> bool:
+    """
+    Check if the given data follows a normal distribution
+    using the Shapiro-Wilk test.
+
+    Parameters:
+        data (np.ndarray): Input data array.
+
+    Returns:
+        bool: True if data is normally distributed (p > 0.05), False otherwise.
+    """
     _, p_value = shapiro(data)
-    return p_value > 0.05
+    return p_value > alpha
 
 class Features():
 

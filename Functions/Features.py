@@ -41,6 +41,9 @@ class Features():
         self.dataset = dataset
         self.only_physiological = only_physiological
 
+    def _get_full_rt(self, vb_index:list, mv_index:list, t:np.ndarray):
+        return [t[abs(round(mv-vb))] if not vb == -1 and not mv == -1 else -1 for vb, mv in zip(vb_index, mv_index)]
+
     def calculate_single_run_features(self):
         # For each run, get all the RTs and features
         for subject in self.dataset:
@@ -73,7 +76,7 @@ class Features():
                         continue
                     print(f'\t\t{feature}: {self.single_run_features[subject][run][feature]:.6g} ms')
 
-    def calculate_single_run_features_by_type(self):
+    def calculate_single_run_features_by_type(self, accelerometer:bool = False):
         # For each run, get all the RTs and features
         for subject in self.dataset:
             if subject not in self.single_run_features_by_type:
@@ -122,12 +125,22 @@ class Features():
                 homo = rt_acc[np.logical_or(acc_test_type == 3, acc_test_type == 4)]
                 self.run_hetero_homo_ratio[subject][run] = np.mean(hetero) / np.mean(homo)
 
+                # Get full rts from matlab
+                if accelerometer == True:
+                    vb_index = self.dataset[subject][run]['vb_index'].flatten()
+                    mv_index = self.dataset[subject][run]['mv_index'].flatten()
+                    t = self.dataset[subject][run]['t'].flatten()
+                    self.single_run_features_by_type[subject][run]['all_rt_acc'] = self._get_full_rt(vb_index, mv_index, t)
+                    self.single_run_features_by_type[subject][run]['test_type'] = test_type
+
     def print_single_run_features_by_type(self):
         for subject in self.single_run_features_by_type:
             print(f'Subject: {subject}')
             for run in self.single_run_features_by_type[subject]:
                 print(f'\tRun {run}:')
                 for test_type in self.single_run_features_by_type[subject][run]:
+                    if test_type == 'all_rt_acc' or test_type == 'test_type':
+                        continue
                     print(f'\t\tTest type {test_type}:')
                     for feature in self.single_run_features_by_type[subject][run][test_type]:
                         if feature == 'rt_acc':
@@ -171,7 +184,7 @@ class Features():
                     continue
                 print(f'\t{feature}: {self.subject_features[subject][feature]:.6g} ms')
 
-    def calculate_subject_features_by_type(self):
+    def calculate_subject_features_by_type(self, accelerometer:bool = False):
         # For each subject, get all the RTs and features
         for subject in self.dataset:
             if subject not in self.subject_features_by_type:
@@ -180,7 +193,8 @@ class Features():
                 self.subject_hetero_homo_ratio[subject] = dict()
 
             rt_by_type:dict[int, np.ndarray] = dict()
-
+            all_rt_acc = np.ndarray([])
+            all_test_types = np.ndarray([])
             # Loop through the runs of each subject
             for run in self.dataset[subject]:
                 # Simplify the variable names
@@ -197,6 +211,19 @@ class Features():
                         rt_by_type[i] = np.array([])
 
                     rt_by_type[i] = np.concatenate((rt_by_type[i], rt_acc[acc_test_type == i]), axis=None)
+
+                # Get full rts from matlab
+                if accelerometer == True:
+                    vb_index = self.dataset[subject][run]['vb_index'].flatten()
+                    mv_index = self.dataset[subject][run]['mv_index'].flatten()
+                    t = self.dataset[subject][run]['t'].flatten()
+
+                    all_rt_acc = np.concatenate((all_rt_acc, self._get_full_rt(vb_index, mv_index, t)), axis=None)
+                    all_test_types = np.concatenate((all_test_types, test_type), axis=None)
+
+            if accelerometer == True:
+                self.subject_features_by_type[subject]['all_rt_acc'] = all_rt_acc
+                self.subject_features_by_type[subject]['test_type'] = all_test_types
 
             # Calculate statistical features by test type for each subject
             for i in np.sort(np.unique(test_type)):
@@ -223,6 +250,8 @@ class Features():
         for subject in self.subject_features_by_type:
             print(f'Subject: {subject}')
             for test_type in self.subject_features_by_type[subject]:
+                if test_type == 'all_rt_acc' or test_type == 'test_type':
+                    continue
                 print(f'\tTest type {test_type}:')
                 for feature in self.subject_features_by_type[subject][test_type]:
                     if feature == 'rt_acc':
@@ -261,10 +290,12 @@ class Features():
             print(f'{feature}: {self.overall_features[feature]:.6g} ms')
         print(' \n')
 
-    def calculate_overall_features_by_type(self):
+    def calculate_overall_features_by_type(self, accelerometer:bool = False):
         # Get all the RTs and features
         rt_by_type:dict[int, np.ndarray] = dict()
 
+        all_rt_acc = np.ndarray([])
+        all_test_types = np.ndarray([])
         for subject in self.dataset:
             for run in self.dataset[subject]:
                 # Simplify the variable names
@@ -281,6 +312,19 @@ class Features():
                         rt_by_type[i] = np.array([])
 
                     rt_by_type[i] = np.concatenate((rt_by_type[i], rt_acc[acc_test_type == i]), axis=None)
+
+                # Get full rts from matlab
+                if accelerometer == True:
+                    vb_index = self.dataset[subject][run]['vb_index'].flatten()
+                    mv_index = self.dataset[subject][run]['mv_index'].flatten()
+                    t = self.dataset[subject][run]['t'].flatten()
+
+                    all_rt_acc = np.concatenate((all_rt_acc, self._get_full_rt(vb_index, mv_index, t)), axis=None)
+                    all_test_types = np.concatenate((all_test_types, test_type), axis=None)
+
+        if accelerometer == True:
+            self.overall_features_by_type['all_rt_acc'] = all_rt_acc
+            self.overall_features_by_type['test_type'] = all_test_types
 
         # Calculate statistical features by test type for all subjects
         for i in np.sort(np.unique(test_type)):
@@ -305,6 +349,8 @@ class Features():
 
     def print_overall_features_by_type(self):
         for test_type in self.overall_features_by_type:
+            if test_type == 'all_rt_acc' or test_type == 'test_type':
+                continue
             print(f'Test type {test_type}:')
             for feature in self.overall_features_by_type[test_type]:
                 if feature == 'rt_acc':

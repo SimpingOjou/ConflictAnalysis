@@ -100,7 +100,7 @@ class Features():
                     acc_test_type = acc_test_type[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
                     rt_acc = rt_acc[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
 
-                for type in np.sort(np.unique(test_type)):
+                for type in np.sort(np.unique(test_type[test_type > 0])):
                     if type not in rt_by_type:
                         rt_by_type[type] = np.array([])
                     if type not in self.single_run_features_by_type[subject][run]:
@@ -131,6 +131,9 @@ class Features():
                     mv_index = self.dataset[subject][run]['mv_index'].flatten()
                     t = self.dataset[subject][run]['t'].flatten()
                     self.single_run_features_by_type[subject][run]['all_rt_acc'] = self._get_full_rt(vb_index, mv_index, t)
+                    self.single_run_features_by_type[subject][run]['test_type'] = test_type
+                else:
+                    self.single_run_features_by_type[subject][run]['all_rt_acc'] = self.dataset[subject][run]['all_rt_box']
                     self.single_run_features_by_type[subject][run]['test_type'] = test_type
 
     def print_single_run_features_by_type(self):
@@ -193,8 +196,8 @@ class Features():
                 self.subject_hetero_homo_ratio[subject] = dict()
 
             rt_by_type:dict[int, np.ndarray] = dict()
-            all_rt_acc = np.ndarray([])
-            all_test_types = np.ndarray([])
+            all_rt_acc = np.array([])
+            all_test_types = np.array([])
             # Loop through the runs of each subject
             for run in self.dataset[subject]:
                 # Simplify the variable names
@@ -206,7 +209,7 @@ class Features():
                     rt_acc = rt_acc[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
 
                 # Loop through each test type and calculate the average reaction times
-                for i in np.sort(np.unique(test_type)):
+                for i in np.sort(np.unique(test_type[test_type > 0])):
                     if i not in rt_by_type:
                         rt_by_type[i] = np.array([])
 
@@ -220,13 +223,15 @@ class Features():
 
                     all_rt_acc = np.concatenate((all_rt_acc, self._get_full_rt(vb_index, mv_index, t)), axis=None)
                     all_test_types = np.concatenate((all_test_types, test_type), axis=None)
+                else:
+                    all_rt_acc = np.concatenate((all_rt_acc, self.dataset[subject][run]['all_rt_box']), axis=None)
+                    all_test_types = np.concatenate((all_test_types, test_type), axis=None)
 
-            if accelerometer == True:
-                self.subject_features_by_type[subject]['all_rt_acc'] = all_rt_acc
-                self.subject_features_by_type[subject]['test_type'] = all_test_types
+            self.subject_features_by_type[subject]['all_rt_acc'] = all_rt_acc
+            self.subject_features_by_type[subject]['test_type'] = all_test_types
 
             # Calculate statistical features by test type for each subject
-            for i in np.sort(np.unique(test_type)):
+            for i in np.sort(np.unique(test_type[test_type > 0])):
                 if i not in self.subject_features_by_type[subject]:
                     self.subject_features_by_type[subject][i] = dict()
 
@@ -294,8 +299,8 @@ class Features():
         # Get all the RTs and features
         rt_by_type:dict[int, np.ndarray] = dict()
 
-        all_rt_acc = np.ndarray([])
-        all_test_types = np.ndarray([])
+        all_rt_acc = np.array([])
+        all_test_types = np.array([])
         for subject in self.dataset:
             for run in self.dataset[subject]:
                 # Simplify the variable names
@@ -307,7 +312,7 @@ class Features():
                     rt_acc = rt_acc[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
 
                 # Loop through each test type and calculate the average reaction times
-                for i in np.sort(np.unique(test_type)):
+                for i in np.sort(np.unique(test_type[test_type > 0])):
                     if i not in rt_by_type:
                         rt_by_type[i] = np.array([])
 
@@ -321,13 +326,15 @@ class Features():
 
                     all_rt_acc = np.concatenate((all_rt_acc, self._get_full_rt(vb_index, mv_index, t)), axis=None)
                     all_test_types = np.concatenate((all_test_types, test_type), axis=None)
+                else:
+                    all_rt_acc = np.concatenate((all_rt_acc, self.dataset[subject][run]['all_rt_box']), axis=None)
+                    all_test_types = np.concatenate((all_test_types, test_type), axis=None)
 
-        if accelerometer == True:
-            self.overall_features_by_type['all_rt_acc'] = all_rt_acc
-            self.overall_features_by_type['test_type'] = all_test_types
+        self.overall_features_by_type['all_rt_acc'] = all_rt_acc
+        self.overall_features_by_type['test_type'] = all_test_types
 
         # Calculate statistical features by test type for all subjects
-        for i in np.sort(np.unique(test_type)):
+        for i in np.sort(np.unique(test_type[test_type > 0])):
             if i not in self.overall_features_by_type:
                 self.overall_features_by_type[i] = dict()
 
@@ -554,6 +561,8 @@ class FeatureComparator():
         self.feature_1 = feature_1
         self.feature_2 = feature_2
         self.features_to_compare = features_to_compare
+
+        self.test_types = [key for key in self.feature_2.overall_features_by_type if key != 'test_type' and key != 'all_rt_acc']
 
         # Get common subjects and runs between the two datasets
         self.common_subjects = list(set(self.feature_1.dataset.keys()) & set(self.feature_2.dataset.keys()))

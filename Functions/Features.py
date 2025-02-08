@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
-from scipy.stats import shapiro
+from scipy.stats import shapiro, permutation_test
 import seaborn as sns
 import pandas as pd
+
 
 plt.rcParams['figure.figsize'] = [10, 8]
 
@@ -59,6 +60,9 @@ class Features():
                 if self.only_physiological:
                     rt_acc = rt_acc[(rt_acc > Features.lower_limit) & (rt_acc < Features.upper_limit)]
 
+                if len(rt_acc) == 0:
+                    rt_acc = np.array([np.nan])
+
                 self.single_run_features[subject][run]['mean'] = np.mean(rt_acc)
                 self.single_run_features[subject][run]['median'] = np.median(rt_acc)
                 self.single_run_features[subject][run]['std'] = np.std(rt_acc)
@@ -108,6 +112,8 @@ class Features():
 
                     rt_by_type[type] = rt_acc[acc_test_type == type]
 
+                    if len(rt_by_type[type]) == 0:
+                        rt_by_type[type] = np.array([np.nan])
                     self.single_run_features_by_type[subject][run][type] = dict()
                     self.single_run_features_by_type[subject][run][type]['mean'] = np.mean(rt_by_type[type])
                     self.single_run_features_by_type[subject][run][type]['median'] = np.median(rt_by_type[type])
@@ -130,11 +136,14 @@ class Features():
                     vb_index = self.dataset[subject][run]['vb_index'].flatten()
                     mv_index = self.dataset[subject][run]['mv_index'].flatten()
                     t = self.dataset[subject][run]['t'].flatten()
-                    self.single_run_features_by_type[subject][run]['all_rt_acc'] = self._get_full_rt(vb_index, mv_index, t)
+                    self.single_run_features_by_type[subject][run]['RT'] = self._get_full_rt(vb_index, mv_index, t)
                     self.single_run_features_by_type[subject][run]['test_type'] = test_type
                 else:
-                    self.single_run_features_by_type[subject][run]['all_rt_acc'] = self.dataset[subject][run]['all_rt_box']
+                    self.single_run_features_by_type[subject][run]['RT'] = self.dataset[subject][run]['all_rt_box']
                     self.single_run_features_by_type[subject][run]['test_type'] = test_type
+
+    def get_single_run_features_by_type(self):
+        return self.single_run_features_by_type
 
     def print_single_run_features_by_type(self):
         for subject in self.single_run_features_by_type:
@@ -142,7 +151,7 @@ class Features():
             for run in self.single_run_features_by_type[subject]:
                 print(f'\tRun {run}:')
                 for test_type in self.single_run_features_by_type[subject][run]:
-                    if test_type == 'all_rt_acc' or test_type == 'test_type':
+                    if test_type == 'RT' or test_type == 'test_type':
                         continue
                     print(f'\t\tTest type {test_type}:')
                     for feature in self.single_run_features_by_type[subject][run][test_type]:
@@ -171,6 +180,9 @@ class Features():
 
                 rt = np.concatenate((rt, rt_acc), axis=None)
 
+            if len(rt) == 0:
+                rt = np.array([np.nan])
+
             # Calculate statistical features for each subject
             self.subject_features[subject]['mean'] = np.mean(rt)
             self.subject_features[subject]['median'] = np.median(rt)
@@ -196,7 +208,7 @@ class Features():
                 self.subject_hetero_homo_ratio[subject] = dict()
 
             rt_by_type:dict[int, np.ndarray] = dict()
-            all_rt_acc = np.array([])
+            all_rt = np.array([])
             all_test_types = np.array([])
             # Loop through the runs of each subject
             for run in self.dataset[subject]:
@@ -221,13 +233,13 @@ class Features():
                     mv_index = self.dataset[subject][run]['mv_index'].flatten()
                     t = self.dataset[subject][run]['t'].flatten()
 
-                    all_rt_acc = np.concatenate((all_rt_acc, self._get_full_rt(vb_index, mv_index, t)), axis=None)
+                    all_rt = np.concatenate((all_rt, self._get_full_rt(vb_index, mv_index, t)), axis=None)
                     all_test_types = np.concatenate((all_test_types, test_type), axis=None)
                 else:
-                    all_rt_acc = np.concatenate((all_rt_acc, self.dataset[subject][run]['all_rt_box']), axis=None)
+                    all_rt = np.concatenate((all_rt, self.dataset[subject][run]['all_rt_box']), axis=None)
                     all_test_types = np.concatenate((all_test_types, test_type), axis=None)
 
-            self.subject_features_by_type[subject]['all_rt_acc'] = all_rt_acc
+            self.subject_features_by_type[subject]['RT'] = all_rt
             self.subject_features_by_type[subject]['test_type'] = all_test_types
 
             # Calculate statistical features by test type for each subject
@@ -235,6 +247,8 @@ class Features():
                 if i not in self.subject_features_by_type[subject]:
                     self.subject_features_by_type[subject][i] = dict()
 
+                if len(rt_by_type[i]) == 0:
+                    rt_by_type[i] = np.array([np.nan])
                 self.subject_features_by_type[subject][i]['mean'] = np.mean(rt_by_type[i])
                 self.subject_features_by_type[subject][i]['median'] = np.median(rt_by_type[i])
                 self.subject_features_by_type[subject][i]['std'] = np.std(rt_by_type[i])
@@ -242,7 +256,9 @@ class Features():
                 self.subject_features_by_type[subject][i]['max'] = np.max(rt_by_type[i])
                 self.subject_features_by_type[subject][i]['rt_acc'] = rt_by_type[i]
 
-                if _check_normality(rt_by_type[i]):
+                if len(rt_by_type[i]) < 3:
+                    self.subject_features_by_type[subject][i]['normality'] = 'Not enough data'
+                elif _check_normality(rt_by_type[i]):
                     self.subject_features_by_type[subject][i]['normality'] = 'Yes'
                 else:
                     self.subject_features_by_type[subject][i]['normality'] = 'No'
@@ -251,11 +267,14 @@ class Features():
             homo = np.concatenate((rt_by_type[3], rt_by_type[4]), axis=None)
             self.subject_hetero_homo_ratio[subject] = np.mean(hetero) / np.mean(homo)
 
+    def get_subject_features_by_type(self):
+        return self.subject_features_by_type
+
     def print_subject_features_by_type(self):
         for subject in self.subject_features_by_type:
             print(f'Subject: {subject}')
             for test_type in self.subject_features_by_type[subject]:
-                if test_type == 'all_rt_acc' or test_type == 'test_type':
+                if test_type == 'RT' or test_type == 'test_type':
                     continue
                 print(f'\tTest type {test_type}:')
                 for feature in self.subject_features_by_type[subject][test_type]:
@@ -280,6 +299,8 @@ class Features():
 
                 rt = np.concatenate((rt, rt_acc), axis=None)
 
+        if len(rt) == 0:
+            rt = np.array(np.nan)
         # Calculate statistical features for all subjects
         self.overall_features['mean'] = np.mean(rt)
         self.overall_features['median'] = np.median(rt)
@@ -299,7 +320,7 @@ class Features():
         # Get all the RTs and features
         rt_by_type:dict[int, np.ndarray] = dict()
 
-        all_rt_acc = np.array([])
+        all_rt = np.array([])
         all_test_types = np.array([])
         for subject in self.dataset:
             for run in self.dataset[subject]:
@@ -324,19 +345,22 @@ class Features():
                     mv_index = self.dataset[subject][run]['mv_index'].flatten()
                     t = self.dataset[subject][run]['t'].flatten()
 
-                    all_rt_acc = np.concatenate((all_rt_acc, self._get_full_rt(vb_index, mv_index, t)), axis=None)
+                    all_rt = np.concatenate((all_rt, self._get_full_rt(vb_index, mv_index, t)), axis=None)
                     all_test_types = np.concatenate((all_test_types, test_type), axis=None)
                 else:
-                    all_rt_acc = np.concatenate((all_rt_acc, self.dataset[subject][run]['all_rt_box']), axis=None)
+                    all_rt = np.concatenate((all_rt, self.dataset[subject][run]['all_rt_box']), axis=None)
                     all_test_types = np.concatenate((all_test_types, test_type), axis=None)
 
-        self.overall_features_by_type['all_rt_acc'] = all_rt_acc
+        self.overall_features_by_type['RT'] = all_rt
         self.overall_features_by_type['test_type'] = all_test_types
 
         # Calculate statistical features by test type for all subjects
         for i in np.sort(np.unique(test_type[test_type > 0])):
             if i not in self.overall_features_by_type:
                 self.overall_features_by_type[i] = dict()
+
+            if len(rt_by_type[i]) == 0:
+                rt_by_type[i] = np.array([np.nan])
 
             self.overall_features_by_type[i]['mean'] = np.mean(rt_by_type[i])
             self.overall_features_by_type[i]['median'] = np.median(rt_by_type[i])
@@ -354,9 +378,12 @@ class Features():
         homo = np.concatenate((rt_by_type[3], rt_by_type[4]), axis=None)
         self.overall_hetero_homo_ratio = np.mean(hetero) / np.mean(homo)
 
+    def get_overall_features_by_type(self):
+        return self.overall_features_by_type
+
     def print_overall_features_by_type(self):
         for test_type in self.overall_features_by_type:
-            if test_type == 'all_rt_acc' or test_type == 'test_type':
+            if test_type == 'RT' or test_type == 'test_type':
                 continue
             print(f'Test type {test_type}:')
             for feature in self.overall_features_by_type[test_type]:
@@ -387,6 +414,9 @@ class Features():
             for subject in self.single_run_features_by_type:
                 for run in self.single_run_features_by_type[subject]:
                     for test_type in self.single_run_features_by_type[subject][run]:
+                        if test_type == 'RT' or test_type == 'test_type':
+                            continue
+
                         writer.writerow([subject, run, test_type, self.single_run_features_by_type[subject][run][test_type]['mean'], self.single_run_features_by_type[subject][run][test_type]['median'], self.single_run_features_by_type[subject][run][test_type]['std'], self.single_run_features_by_type[subject][run][test_type]['min'], self.single_run_features_by_type[subject][run][test_type]['max'], self.single_run_features_by_type[subject][run][test_type]['normality']])
 
             writer.writerow([])
@@ -395,8 +425,6 @@ class Features():
             for subject in self.single_run_features_by_type:
                 for run in self.single_run_features_by_type[subject]:
                     writer.writerow([subject, run, self.run_hetero_homo_ratio[subject][run]])
-
-        # TODO: Add ratio and distribution feature in csv
     
     def save_subject_features(self, folder:str = './Export/'):
         # Save subject features
@@ -415,6 +443,8 @@ class Features():
             writer.writerow(['Subject', 'Test Type', 'Mean', 'Median', 'Standard Deviation', 'Minimum', 'Maximum', 'Normality'])
             for subject in self.subject_features_by_type:
                 for test_type in self.subject_features_by_type[subject]:
+                    if test_type == 'RT' or test_type == 'test_type':
+                        continue
                     writer.writerow([subject, test_type, self.subject_features_by_type[subject][test_type]['mean'], self.subject_features_by_type[subject][test_type]['median'], self.subject_features_by_type[subject][test_type]['std'], self.subject_features_by_type[subject][test_type]['min'], self.subject_features_by_type[subject][test_type]['max'], self.subject_features_by_type[subject][test_type]['normality']])
 
             writer.writerow([])
@@ -429,6 +459,7 @@ class Features():
         with open(path, 'w', newline='', encoding='utf-8-sig') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(['Mean', 'Median', 'Standard Deviation', 'Minimum', 'Maximum'])
+            # print(self.overall_features.keys())
             writer.writerow([self.overall_features['mean'], self.overall_features['median'], self.overall_features['std'], self.overall_features['min'], self.overall_features['max']])
 
     def save_overall_features_by_type(self, folder:str = './Export/'):
@@ -438,6 +469,8 @@ class Features():
             writer = csv.writer(csvfile)
             writer.writerow(['Test Type', 'Mean', 'Median', 'Standard Deviation', 'Minimum', 'Maximum', 'Normality'])
             for test_type in self.overall_features_by_type:
+                if test_type == 'RT' or test_type == 'test_type':
+                    continue
                 writer.writerow([test_type, self.overall_features_by_type[test_type]['mean'], self.overall_features_by_type[test_type]['median'], self.overall_features_by_type[test_type]['std'], self.overall_features_by_type[test_type]['min'], self.overall_features_by_type[test_type]['max'], self.overall_features_by_type[test_type]['normality']])
 
             writer.writerow([])
@@ -557,58 +590,175 @@ class FeaturePlotter():
         plt.show()
 
 class FeatureComparator():
-    def __init__(self, feature_1:Features, feature_2:Features, features_to_compare:list[str] = ['mean', 'median', 'std', 'min', 'max']):
-        self.feature_1 = feature_1
-        self.feature_2 = feature_2
+    def __init__(self, feature_acc:Features, feature_box:Features, features_to_compare:list[str] = ['mean', 'median', 'std', 'min', 'max']):
+        self.feature_acc = feature_acc
+        self.feature_box = feature_box
         self.features_to_compare = features_to_compare
 
-        self.test_types = [key for key in self.feature_2.overall_features_by_type if key != 'test_type' and key != 'all_rt_acc']
+        self.test_types = [key for key in self.feature_box.overall_features_by_type if key != 'test_type' and key != 'RT']
 
         # Get common subjects and runs between the two datasets
-        self.common_subjects = list(set(self.feature_1.dataset.keys()) & set(self.feature_2.dataset.keys()))
+        self.common_subjects = list(set(self.feature_acc.dataset.keys()) & set(self.feature_box.dataset.keys()))
         self.common_runs = dict()
         for subject in self.common_subjects:
-            self.common_runs[subject] = list(set(self.feature_1.dataset[subject].keys()) & set(self.feature_2.dataset[subject].keys()))
+            self.common_runs[subject] = list(set(self.feature_acc.dataset[subject].keys()) & set(self.feature_box.dataset[subject].keys()))
 
     def compare_single_run_features_by_type(self):
         for subject in self.common_subjects:
             print(f'Subject: {subject}')
             for run in self.common_runs[subject]:
                 print(f'\tRun {run}:')
-                for test_type in self.feature_1.single_run_features_by_type[subject][run]:
+                for test_type in self.feature_acc.single_run_features_by_type[subject][run]:
                     print(f'\t\tTest type {test_type}:')
                     for feature in self.features_to_compare:
-                        if feature not in self.feature_1.single_run_features_by_type[subject][run][test_type]:
+                        if feature not in self.feature_acc.single_run_features_by_type[subject][run][test_type]:
                             continue
-                        print(f'\t\t\t{feature}: {self.feature_1.single_run_features_by_type[subject][run][test_type][feature]:.6g} (acc) ms vs {self.feature_2.single_run_features_by_type[subject][run][test_type][feature]:.6g} (box) ms')
+                        print(f'\t\t\t{feature}: {self.feature_acc.single_run_features_by_type[subject][run][test_type][feature]:.6g} (acc) ms vs {self.feature_box.single_run_features_by_type[subject][run][test_type][feature]:.6g} (box) ms')
                         if feature == 'mean' or feature == 'median':
-                            print(f'\t\t\t\tdifference: {self._compute_difference(self.feature_1.single_run_features_by_type[subject][run][test_type][feature], self.feature_2.single_run_features_by_type[subject][run][test_type][feature]):.6g} ms, Percentage difference: {self._compute_percentage_difference(self.feature_1.single_run_features_by_type[subject][run][test_type][feature], self.feature_2.single_run_features_by_type[subject][run][test_type][feature]):.6g}%')
+                            print(f'\t\t\t\tdifference: {self._compute_difference(self.feature_acc.single_run_features_by_type[subject][run][test_type][feature], self.feature_box.single_run_features_by_type[subject][run][test_type][feature]):.6g} ms, Percentage difference: {self._compute_percentage_difference(self.feature_acc.single_run_features_by_type[subject][run][test_type][feature], self.feature_box.single_run_features_by_type[subject][run][test_type][feature]):.6g}%')
 
     def compare_subject_features_by_type(self):
         for subject in self.common_subjects:
             print(f'Subject: {subject}')
-            for test_type in self.feature_1.subject_features_by_type[subject]:
+            for test_type in self.feature_acc.subject_features_by_type[subject]:
                 print(f'\tTest type {test_type}:')
                 for feature in self.features_to_compare:
-                    if feature not in self.feature_1.subject_features_by_type[subject][test_type]:
+                    if feature not in self.feature_acc.subject_features_by_type[subject][test_type]:
                         continue
-                    print(f'\t\t{feature}: {self.feature_1.subject_features_by_type[subject][test_type][feature]:.6g} (acc) ms vs {self.feature_2.subject_features_by_type[subject][test_type][feature]:.6g} (box) ms')
+                    print(f'\t\t{feature}: {self.feature_acc.subject_features_by_type[subject][test_type][feature]:.6g} (acc) ms vs {self.feature_box.subject_features_by_type[subject][test_type][feature]:.6g} (box) ms')
                     if feature == 'mean' or feature == 'median':
-                        print(f'\t\t\tdifference: {self._compute_difference(self.feature_1.subject_features_by_type[subject][test_type][feature], self.feature_2.subject_features_by_type[subject][test_type][feature]):.6g} ms, Percentage difference: {self._compute_percentage_difference(self.feature_1.subject_features_by_type[subject][test_type][feature], self.feature_2.subject_features_by_type[subject][test_type][feature]):.6g}%')
+                        print(f'\t\t\tdifference: {self._compute_difference(self.feature_acc.subject_features_by_type[subject][test_type][feature], self.feature_box.subject_features_by_type[subject][test_type][feature]):.6g} ms, Percentage difference: {self._compute_percentage_difference(self.feature_acc.subject_features_by_type[subject][test_type][feature], self.feature_box.subject_features_by_type[subject][test_type][feature]):.6g}%')
 
     def compare_overall_features_by_type(self):
         print('Overall features by type')
-        for test_type in self.feature_1.overall_features_by_type:
+        for test_type in self.feature_acc.overall_features_by_type:
             print(f'\tTest type {test_type}:')
             for feature in self.features_to_compare:
-                if feature not in self.feature_1.overall_features_by_type[test_type]:
+                if feature not in self.feature_acc.overall_features_by_type[test_type]:
                     continue
-                print(f'\t\t{feature}: {self.feature_1.overall_features_by_type[test_type][feature]:.6g} (acc) ms vs {self.feature_2.overall_features_by_type[test_type][feature]:.6g} (box) ms')
+                print(f'\t\t{feature}: {self.feature_acc.overall_features_by_type[test_type][feature]:.6g} (acc) ms vs {self.feature_box.overall_features_by_type[test_type][feature]:.6g} (box) ms')
                 if feature == 'mean' or feature == 'median':
-                    print(f'\t\t\tdifference: {self._compute_difference(self.feature_1.overall_features_by_type[test_type][feature], self.feature_2.overall_features_by_type[test_type][feature]):.6g} ms, Percentage difference: {self._compute_percentage_difference(self.feature_1.overall_features_by_type[test_type][feature], self.feature_2.overall_features_by_type[test_type][feature]):.6g}%')
+                    print(f'\t\t\tdifference: {self._compute_difference(self.feature_acc.overall_features_by_type[test_type][feature], self.feature_box.overall_features_by_type[test_type][feature]):.6g} ms, Percentage difference: {self._compute_percentage_difference(self.feature_acc.overall_features_by_type[test_type][feature], self.feature_box.overall_features_by_type[test_type][feature]):.6g}%')
 
     def _compute_difference(self, value_1:float, value_2:float) -> float:
         return abs(value_1 - value_2)
     
     def _compute_percentage_difference(self, value_1:float, value_2:float) -> float:
         return self._compute_difference(value_1=value_1, value_2=value_2) / value_2 * 100
+    
+    def _calculate_correlation(self, data_1, data_2):
+        # Determine the maximum length
+        max_length = max(len(data_1), len(data_2))
+
+        # Pad both lines to the same length
+        data_1_padded = np.pad(data_1, (0, max_length - len(data_1)), constant_values=np.nan)
+        data_2_padded = np.pad(data_2, (0, max_length - len(data_2)), constant_values=np.nan)
+
+        # Fit polynomials to the padded data (ignoring NaN during fit) >> fit not working
+
+        valid_mask = ~np.isnan(data_1_padded) & ~np.isnan(data_2_padded)
+        correlation_original = np.corrcoef(data_1_padded[valid_mask], data_2_padded[valid_mask])[0, 1]
+
+        return correlation_original
+    
+    def _iterate_test_types(self, data_1, data_2, all_test_types):
+        # Substitute -1 with NaN
+        data_1 = [el if el != -1 else np.nan for el in data_1]
+        data_2 = [el if el != -1 else np.nan for el in data_2]
+
+        for test_type in self.test_types:
+            data_1_tt = [el for tt,el in zip(all_test_types, data_1) if tt == test_type and not np.isnan(el)]
+            data_2_tt = [el for tt,el in zip(all_test_types, data_2) if tt == test_type and not np.isnan(el)]
+
+            correlation = self._calculate_correlation(data_1_tt, data_2_tt)
+            print(f'\tCorrelation for test type {test_type}: {correlation:.6g}')
+
+    def calculate_correlation_per_subject(self)->None:
+        for subject in self.common_subjects:
+            print(f"Subject {subject}")
+
+            data_1 = self.feature_acc.subject_features_by_type[subject]['RT']
+            data_2 = self.feature_box.subject_features_by_type[subject]['RT']
+            all_test_types = self.feature_acc.subject_features_by_type[subject]['test_type']
+
+            self._iterate_test_types(data_1, data_2, all_test_types)
+
+    def calculate_correlation_per_run(self)->None:
+        for subject in self.common_subjects:
+            print(f"Subject {subject}")
+            for run in self.common_runs[subject]:
+                print(f"\tRun {run}")
+
+                data_1 = self.feature_acc.single_run_features_by_type[subject][run]['RT']
+                data_2 = self.feature_box.single_run_features_by_type[subject][run]['RT']
+                all_test_types = self.feature_acc.subject_features_by_type[subject]['test_type']
+
+                self._iterate_test_types(data_1, data_2, all_test_types)
+
+    def _do_permutation_test(self, data_1, data_2, n_permutations, test_type):
+        def correlation_statistic(x, y):
+                    return np.corrcoef(x, y)[0, 1]
+        # Perform the permutation test
+        result = permutation_test(
+            (data_1, data_2),  # Paired data
+            correlation_statistic,               # Statistic function
+            n_resamples=n_permutations,          # Number of permutations
+            alternative='two-sided'              # Test for positive or negative correlation
+        )
+
+        # Extract observed correlation and p-value
+        observed_correlation = result.statistic
+        p_value = result.pvalue
+
+        if p_value < 0.05:
+            print(f"\tTest type {test_type}: |r| = {observed_correlation:.3f} - n = {len(data_1)} - p = {p_value:.6f} > The trends are significantly correlated.")
+        else:
+            print(f"\tTest type {test_type}: |r| = {observed_correlation:.3f} - {len(data_1)} - p = {p_value:.6f} > The trends are not significantly correlated.")
+
+    def _iterate_test_type_permutation(self, rt_acc, rt_box, n_permutations, all_test_types):
+        for test_type in self.test_types:
+                # Remove NaN values to handle missing data keeping it paired
+                filtered_data = [
+                    (acc, box, tt) 
+                    for (acc, box, tt) in zip(rt_acc, rt_box, all_test_types) 
+                    if not np.isnan(acc) and not np.isnan(box) and tt == test_type
+                ]
+                if not filtered_data:
+                    rt_acc_nones = [el for el, tt in zip(rt_acc, all_test_types) if np.isnan(el) and tt == test_type]
+                    rt_box_nones = [el for el, tt in zip(rt_box, all_test_types) if np.isnan(el) and tt == test_type]
+                    print(f"\tTest type {test_type}: No data for this test type. Not found: {len(rt_acc_nones)} acc - {len(rt_box_nones)} box")
+                    continue
+
+                filtered_rt_acc, filtered_rt_box, _ = zip(*filtered_data)
+
+                self._do_permutation_test(filtered_rt_acc, filtered_rt_box, n_permutations, test_type)
+
+    def subject_permuations(self, n_permutations):
+        for subject in self.common_subjects:
+            print(f"Subject {subject}")
+
+            rt_acc = self.feature_acc.subject_features_by_type[subject]['RT']
+            rt_box = self.feature_box.subject_features_by_type[subject]['RT']
+            test_types = self.feature_acc.subject_features_by_type[subject]['test_type']
+
+            # Substitute -1 with NaN
+            rt_acc = [el if el != -1 else np.nan for el in rt_acc]
+            rt_box = [el if el != -1 else np.nan for el in rt_box]
+            
+            self._iterate_test_type_permutation(rt_acc, rt_box, n_permutations, test_types)
+
+    def run_permutations(self, n_permutations):
+        for subject in self.common_subjects:
+            print(f"Subject {subject}")
+            for run in self.common_runs[subject]:
+                print(f"\tRun {run}")
+
+                rt_acc = self.feature_acc.single_run_features_by_type[subject][run]['RT']
+                rt_box = self.feature_box.single_run_features_by_type[subject][run]['RT']
+                test_types = self.feature_acc.single_run_features_by_type[subject][run]['test_type']
+
+                # Substitute -1 with NaN
+                rt_acc = [el if el != -1 else np.nan for el in rt_acc]
+                rt_box = [el if el != -1 else np.nan for el in rt_box]
+                
+                self._iterate_test_type_permutation(rt_acc, rt_box, n_permutations, test_types)

@@ -11,11 +11,11 @@ parameters;
 doSegmentedDetection;
 
 % Fix not likely data with GUI
-normalized_signal = signal;
-ratio36 = mean(normalized_signal(:,3)) ./ mean(normalized_signal(:,6));
-normalized_signal(:,3) = normalized_signal(:,3) * ratio36; % Make the signals comparable
-signal_magnitude = [getMagnitude(signal(:,1:3), sampling), getMagnitude(signal(:,4:6), sampling)];
-[test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_type, vb_index, mv_index, vb_fing, mv_fing, segmentation_points_index, t, signal_magnitude);
+% normalized_signal = signal;
+% ratio36 = mean(normalized_signal(:,3)) ./ mean(normalized_signal(:,6));
+% normalized_signal(:,3) = normalized_signal(:,3) * ratio36; % Make the signals comparable
+% signal_magnitude = [getMagnitude(signal(:,1:3), sampling), getMagnitude(signal(:,4:6), sampling)];
+% [test_type, vb_index, mv_index, vb_fing, mv_fing] = doManualFix(test_type, vb_index, mv_index, vb_fing, mv_fing, segmentation_points_index, t, signal_magnitude);
 
 % Get RT data
 % doRTComparison;
@@ -27,7 +27,7 @@ doSegmentedStatisticalAnalysis;
 %% Plotting
 
 % doPlots;
-doSegmentedPlots;
+% doSegmentedPlots;
 
 % Save variables into a file -> use python to do statistical analysis
 % Visualize all variables
@@ -46,8 +46,8 @@ clear("box_trial_list", "cell_signal", "channel_nbr", "cutoff_low_mv",...
     "unique_onsets_vb", "unique_vb", "vb_alpha", "vb_baseline_th", ...
     "vb_cutoff_low", "vb_cutoff_high", "vb_filter_order", "vb_onset_indexes",...
     "vibration_time_ms", "W");
-% save(output_filename, '-v6');
-
+save(output_filename, '-v6');
+fprintf('\nExported %s\n', output_filename)
 %% TODO
 % get info about the previous type too
 % test out on 2nd run

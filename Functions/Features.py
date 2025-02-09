@@ -695,7 +695,7 @@ class FeatureComparator():
 
                 self._iterate_test_types(data_1, data_2, all_test_types)
 
-    def _do_permutation_test(self, data_1, data_2, n_permutations, test_type):
+    def _do_permutation_test(self, data_1, data_2, n_permutations, test_type, avg_r, avg_p):
         def correlation_statistic(x, y):
                     return np.corrcoef(x, y)[0, 1]
         # Perform the permutation test
@@ -710,12 +710,15 @@ class FeatureComparator():
         observed_correlation = result.statistic
         p_value = result.pvalue
 
+        avg_r.append(observed_correlation)
+        avg_p.append(p_value)
+
         if p_value < 0.05:
             print(f"\tTest type {test_type}: |r| = {observed_correlation:.3f} - n = {len(data_1)} - p = {p_value:.6f} > The trends are significantly correlated.")
         else:
             print(f"\tTest type {test_type}: |r| = {observed_correlation:.3f} - {len(data_1)} - p = {p_value:.6f} > The trends are not significantly correlated.")
 
-    def _iterate_test_type_permutation(self, rt_acc, rt_box, n_permutations, all_test_types):
+    def _iterate_test_type_permutation(self, rt_acc, rt_box, n_permutations, all_test_types, avg_r, avg_p):
         for test_type in self.test_types:
                 # Remove NaN values to handle missing data keeping it paired
                 filtered_data = [
@@ -731,9 +734,11 @@ class FeatureComparator():
 
                 filtered_rt_acc, filtered_rt_box, _ = zip(*filtered_data)
 
-                self._do_permutation_test(filtered_rt_acc, filtered_rt_box, n_permutations, test_type)
+                self._do_permutation_test(filtered_rt_acc, filtered_rt_box, n_permutations, test_type, avg_r, avg_p)
 
     def subject_permuations(self, n_permutations):
+        avg_r = []
+        avg_p = []
         for subject in self.common_subjects:
             print(f"Subject {subject}")
 
@@ -745,9 +750,13 @@ class FeatureComparator():
             rt_acc = [el if el != -1 else np.nan for el in rt_acc]
             rt_box = [el if el != -1 else np.nan for el in rt_box]
             
-            self._iterate_test_type_permutation(rt_acc, rt_box, n_permutations, test_types)
+            self._iterate_test_type_permutation(rt_acc, rt_box, n_permutations, test_types, avg_r, avg_p)
+
+        return avg_r, avg_p
 
     def run_permutations(self, n_permutations):
+        avg_r = []
+        avg_p = []
         for subject in self.common_subjects:
             print(f"Subject {subject}")
             for run in self.common_runs[subject]:
@@ -761,4 +770,6 @@ class FeatureComparator():
                 rt_acc = [el if el != -1 else np.nan for el in rt_acc]
                 rt_box = [el if el != -1 else np.nan for el in rt_box]
                 
-                self._iterate_test_type_permutation(rt_acc, rt_box, n_permutations, test_types)
+                self._iterate_test_type_permutation(rt_acc, rt_box, n_permutations, test_types, avg_r, avg_p)
+
+        return avg_r, avg_p
